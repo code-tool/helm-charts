@@ -1,5 +1,18 @@
-# Copyright Broadcom, Inc. All Rights Reserved.
-# SPDX-License-Identifier: APACHE-2.0
+name: rabbitmq
+version: 0.0.1
+appVersion: 8.2.1
+apiVersion: v2
+description: Redis(R) is an open source, advanced key-value store. It is often referred
+  to as a data structure server since keys can contain strings, hashes, lists, sets
+  and sorted sets.
+type: application
+sources:
+  - https://github.com/code-tool/helm-charts/tree/main/charts/pgbouncer
+dependencies:
+- name: common
+  repository: https://github.com/code-tool/helm-charts
+  version: 0.x.x
+
 
 annotations:
   images: |
