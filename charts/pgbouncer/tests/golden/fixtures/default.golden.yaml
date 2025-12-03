@@ -1,0 +1,159 @@
+---
+# Source: pgbouncer/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: golden-file-test-pgbouncer-configmap
+  labels:
+    app.kubernetes.io/version: "1.24.1"
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+data:
+  pgbouncer.ini: |
+    [databases]
+    [users]
+    [pgbouncer]
+    listen_addr = *
+    listen_port = 5432
+    auth_file = /etc/userlist/userlist.txt
+    admin_users = admin
+    server_reset_query = SELECT pg_advisory_unlock_all()
+    server_reset_query_always = 1
+    ignore_startup_parameters = extra_float_digits
+---
+# Source: pgbouncer/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golden-file-test-pgbouncer
+  labels:
+    app.kubernetes.io/version: "1.24.1"
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pgbouncer
+      app.kubernetes.io/instance: golden-file-test
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pgbouncer
+        app.kubernetes.io/instance: golden-file-test
+      annotations:
+        checksum/config: 36cde1eb336c9517991e2ad731661552d7c130119519666a66661b3093681834
+        checksum/userlist: b9a7fdfa166f72ec8873e5b3604a2384da500bcc1457b625a93af212692bc8b5
+        checksum/adminsecret: 6fe853c6fcd49e7f21dc0ead9c406885dbd1313d7416cf4c5990e2e9abe091d5
+    spec:
+      serviceAccountName: golden-file-test-pgbouncer
+      terminationGracePeriodSeconds: 30
+      
+
+      containers:
+      - name: pgbouncer
+        image: ghcr.io/icoretech/pgbouncer-docker:1.24.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: psql
+          containerPort: 5432
+          protocol: TCP
+        readinessProbe:
+          tcpSocket:
+            port: 5432
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: 5432
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        securityContext: 
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 70
+          runAsNonRoot: true
+          runAsUser: 70
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: config
+          mountPath: /etc/pgbouncer/
+        - name: userlist
+          mountPath: /etc/userlist/
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: golden-file-test-pgbouncer-configmap
+      - name: userlist
+        secret:
+          secretName: golden-file-test-pgbouncer-userlist-secret
+---
+# Source: pgbouncer/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: golden-file-test-pgbouncer-secret
+  labels:
+    app.kubernetes.io/version: "1.24.1"
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  adminUser: "YWRtaW4="
+  adminPassword: "dGVzdA=="
+---
+# Source: pgbouncer/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: golden-file-test-pgbouncer
+  labels:
+    app.kubernetes.io/version: "1.24.1"
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  ports:
+    - port: 5432
+      targetPort: psql
+      protocol: TCP
+      name: psql
+  selector:
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/instance: golden-file-test
+---
+# Source: pgbouncer/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: golden-file-test-pgbouncer
+  labels:
+    app.kubernetes.io/version: "1.24.1"
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: pgbouncer/templates/userlist-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: golden-file-test-pgbouncer-userlist-secret
+  labels:
+    app.kubernetes.io/version: "1.24.1"
+    app.kubernetes.io/name: pgbouncer
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+data:
+  userlist.txt: ImFkbWluIiAidGVzdCI=
