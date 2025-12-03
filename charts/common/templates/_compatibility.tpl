@@ -1,11 +1,6 @@
-{{/*
-Copyright Broadcom, Inc. All Rights Reserved.
-SPDX-License-Identifier: APACHE-2.0
-*/}}
-
 {{/* vim: set filetype=mustache: */}}
 
-{{/* 
+{{/*
 Return true if the detected platform is Openshift
 Usage:
 {{- include "common.compatibility.isOpenshift" . -}}

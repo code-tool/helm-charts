@@ -1,4 +1,5 @@
 name: common
+# version should be equal to appVersion
 version: 0.0.1
 appVersion: 0.0.1
 apiVersion: v2

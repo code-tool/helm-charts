@@ -1,9 +1,5 @@
-{{/*
-Copyright Broadcom, Inc. All Rights Reserved.
-SPDX-License-Identifier: APACHE-2.0
-*/}}
-
 {{/* vim: set filetype=mustache: */}}
+
 {{/*
 Print instructions to get a secret value.
 Usage:
@@ -46,7 +42,7 @@ Usage:
   {{- $value = ( index $latestObj . ) -}}
   {{- $latestObj = $value -}}
 {{- end -}}
-{{- printf "%v" (default "" $value) -}} 
+{{- printf "%v" (default "" $value) -}}
 {{- end -}}
 
 {{/*
@@ -63,7 +59,7 @@ Usage:
     {{- $key = . }}
   {{- end -}}
 {{- end -}}
-{{- printf "%s" $key -}} 
+{{- printf "%s" $key -}}
 {{- end -}}
 
 {{/*
