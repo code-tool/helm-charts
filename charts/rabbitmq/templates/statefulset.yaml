@@ -1,8 +1,3 @@
-{{- /*
-Copyright Broadcom, Inc. All Rights Reserved.
-SPDX-License-Identifier: APACHE-2.0
-*/}}
-
 apiVersion: {{ include "common.capabilities.statefulset.apiVersion" . }}
 kind: StatefulSet
 metadata:
@@ -33,7 +28,7 @@ spec:
         {{- end }}
         checksum/config: {{ include (print $.Template.BasePath "/config-secret.yaml") . | sha256sum }}
         {{- if (include "rabbitmq.createTlsSecret" . ) }}
-        checksum/configTLS: {{ include (print $.Template.BasePath "/tls-secrets.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/tls-secrets.yaml") . | sha256sum }}
         {{- end }}
         {{- if or (not .Values.auth.existingErlangSecret) (not .Values.auth.existingPasswordSecret) .Values.extraSecrets }}
         checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
@@ -222,8 +217,6 @@ spec:
             - name: RABBITMQ_NODE_NAME
               value: "rabbit@$(MY_POD_NAME)"
             {{- end }}
-            - name: RABBITMQ_UPDATE_PASSWORD
-              value: {{ ternary "yes" "no" .Values.auth.updatePassword | quote }}
             - name: RABBITMQ_MNESIA_DIR
               value: "{{ .Values.persistence.mountPath }}/$(RABBITMQ_NODE_NAME)"
             - name: RABBITMQ_LDAP_ENABLE
@@ -250,16 +243,11 @@ spec:
             {{- end }}
             - name: RABBITMQ_USE_LONGNAME
               value: "true"
-            {{- if .Values.usePasswordFiles }}
-            - name: RABBITMQ_ERL_COOKIE_FILE
-              value: {{ printf "/opt/bitnami/rabbitmq/secrets/%s" (include "rabbitmq.secretErlangKey" .) }}
-            {{- else }}
             - name: RABBITMQ_ERL_COOKIE
               valueFrom:
                 secretKeyRef:
                   name: {{ template "rabbitmq.secretErlangName" . }}
                   key: {{ template "rabbitmq.secretErlangKey" . }}
-            {{- end }}
             {{- if and .Values.clustering.rebalance (gt (.Values.replicaCount | int) 1) }}
             - name: RABBITMQ_CLUSTER_REBALANCE
               value: "true"
@@ -272,16 +260,11 @@ spec:
               value: {{ ternary "yes" "no" (or .Values.auth.securePassword (not .Values.auth.password)) | quote }}
             - name: RABBITMQ_USERNAME
               value: {{ .Values.auth.username | quote }}
-            {{- if .Values.usePasswordFiles }}
-            - name: RABBITMQ_PASSWORD_FILE
-              value: {{ printf "/opt/bitnami/rabbitmq/secrets/%s" (include "rabbitmq.secretPasswordKey" .) }}
-            {{- else }}
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ template "rabbitmq.secretPasswordName" . }}
                   key: {{ template "rabbitmq.secretPasswordKey" . }}
-            {{- end }}
             - name: RABBITMQ_PLUGINS
               value: {{ include "rabbitmq.plugins" . | quote }}
             {{- if .Values.communityPlugins }}
@@ -303,29 +286,17 @@ spec:
           ports:
             - name: amqp
               containerPort: {{ .Values.containerPorts.amqp }}
-              {{- if .Values.hostPorts.amqp }}
-              hostPort: {{ .Values.hostPorts.amqp }}
-              {{- end }}
             - name: dist
               containerPort: {{ .Values.containerPorts.dist }}
             - name: stats
               containerPort: {{ .Values.containerPorts.manager }}
-              {{- if .Values.hostPorts.manager }}
-              hostPort: {{ .Values.hostPorts.manager }}
-              {{- end }}
             - name: epmd
               containerPort: {{ .Values.containerPorts.epmd }}
             - name: metrics
               containerPort: {{ .Values.containerPorts.metrics }}
-              {{- if .Values.hostPorts.metrics }}
-              hostPort: {{ .Values.hostPorts.metrics }}
-              {{- end }}
             {{- if .Values.auth.tls.enabled }}
             - name: amqp-tls
               containerPort: {{ .Values.containerPorts.amqpTls }}
-              {{- if .Values.hostPorts.amqpTls }}
-              hostPort: {{ .Values.hostPorts.amqpTls }}
-              {{- end }}
             {{- end }}
             {{- if .Values.extraContainerPorts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraContainerPorts "context" $) | nindent 12 }}
@@ -337,12 +308,12 @@ spec:
           livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.livenessProbe "enabled") "context" $) | nindent 12 }}
             exec:
               command:
-                - /bin/bash
+                - sh
                 - -ec
                 {{- if or (.Values.loadDefinition.enabled) (not (contains "rabbitmq_management" .Values.plugins )) }}
                 - rabbitmq-diagnostics -q ping
                 {{- else }}
-                - curl -f --user {{ .Values.auth.username }}:{{ ternary "$(< $RABBITMQ_PASSWORD_FILE)" "$RABBITMQ_PASSWORD"  .Values.usePasswordFiles }} 127.0.0.1:{{ .Values.containerPorts.manager }}/api/health/checks/virtual-hosts
+                - curl -f --user {{ .Values.auth.username }}:$RABBITMQ_PASSWORD 127.0.0.1:{{ .Values.containerPorts.manager }}/api/health/checks/virtual-hosts
                 {{- end }}
           {{- end }}
           {{- if .Values.customReadinessProbe }}
@@ -351,12 +322,12 @@ spec:
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
             exec:
               command:
-                - /bin/bash
+                - sh
                 - -ec
                 {{- if or (.Values.loadDefinition.enabled) (not (contains "rabbitmq_management" .Values.plugins )) }}
                 - rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms
                 {{- else }}
-                - curl -f --user {{ .Values.auth.username }}:{{ ternary "$(< $RABBITMQ_PASSWORD_FILE)" "$RABBITMQ_PASSWORD"  .Values.usePasswordFiles }} 127.0.0.1:{{ .Values.containerPorts.manager }}/api/health/checks/local-alarms
+                - curl -f --user {{ .Values.auth.username }}:$RABBITMQ_PASSWORD 127.0.0.1:{{ .Values.containerPorts.manager }}/api/health/checks/local-alarms
                 {{- end }}
           {{- end }}
           {{- if .Values.customStartupProbe }}
@@ -398,10 +369,6 @@ spec:
               {{- if .Values.persistence.subPath }}
               subPath: {{ .Values.persistence.subPath }}
               {{- end }}
-            {{- if  .Values.usePasswordFiles }}
-            - name: rabbitmq-secrets
-              mountPath: /opt/bitnami/rabbitmq/secrets
-            {{- end }}
             {{- if .Values.auth.tls.enabled }}
             - name: certs
               mountPath: /opt/bitnami/rabbitmq/certs
@@ -479,15 +446,6 @@ spec:
               - secret:
                   name: {{ tpl .Values.configurationExistingSecret . | quote }}
               {{- end }}
-        {{- if .Values.usePasswordFiles }}
-        - name: rabbitmq-secrets
-          projected:
-            sources:
-              - secret:
-                  name: {{ template "rabbitmq.secretPasswordName" . }}
-              - secret:
-                  name: {{ template "rabbitmq.secretErlangName" . }}
-        {{- end }}
         {{- if .Values.loadDefinition.enabled }}
         - name: load-definition-volume
           secret:

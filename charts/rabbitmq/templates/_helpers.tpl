@@ -1,8 +1,3 @@
-{{/*
-Copyright Broadcom, Inc. All Rights Reserved.
-SPDX-License-Identifier: APACHE-2.0
-*/}}
-
 {{/* vim: set filetype=mustache: */}}
 
 {{/*
@@ -60,6 +55,17 @@ Get the password key to be retrieved from RabbitMQ secret.
 {{- end -}}
 
 {{/*
+Return RabbitMQ password
+*/}}
+{{- define "rabbitmq.password" -}}
+    {{- if not (empty .Values.auth.password) -}}
+        {{- .Values.auth.password -}}
+    {{- else -}}
+        {{- include "getValueFromSecret" (dict "Namespace" (include "common.names.namespace" .) "Name" (include "rabbitmq.secretPasswordName" .) "Length" 16 "Key" (include "rabbitmq.secretPasswordKey" .))  -}}
+    {{- end -}}
+{{- end }}
+
+{{/*
 Get the erlang secret.
 */}}
 {{- define "rabbitmq.secretErlangName" -}}
@@ -80,6 +86,17 @@ Get the erlang cookie key to be retrieved from RabbitMQ secret.
         {{- printf "rabbitmq-erlang-cookie" -}}
     {{- end -}}
 {{- end -}}
+
+{{/*
+Return RabbitMQ erlang cookie secret
+*/}}
+{{- define "rabbitmq.erlangCookie" -}}
+    {{- if not (empty .Values.auth.erlangCookie) -}}
+        {{- .Values.auth.erlangCookie -}}
+    {{- else -}}
+        {{- include "getValueFromSecret" (dict "Namespace" (include "common.names.namespace" .) "Name" (include "rabbitmq.secretErlangName" .) "Length" 32 "Key" (include "rabbitmq.secretErlangKey" .))  -}}
+    {{- end -}}
+{{- end }}
 
 {{/*
 Get the TLS secret.
@@ -202,19 +219,11 @@ Validate values of rabbitmq - Memory high watermark
 rabbitmq: memoryHighWatermark.type
     Invalid Memory high watermark type. Valid values are "absolute" and
     "relative". Please set a valid mode (--set memoryHighWatermark.type="xxxx")
-{{- else if and .Values.memoryHighWatermark.enabled (eq .Values.memoryHighWatermark.type "relative") (or (not (dig "limits" "memory" "" .Values.resources)) (and (empty .Values.resources) (eq .Values.resourcesPreset "none"))) }}
+{{- else if and .Values.memoryHighWatermark.enabled (not (dig "limits" "memory" "" .Values.resources)) }}
 rabbitmq: memoryHighWatermark
     You enabled configuring memory high watermark using a relative limit. However,
     no memory limits were defined at POD level. Define your POD limits as shown below:
 
-    Using resourcesPreset (not recommended for production):
-    $ helm install {{ .Release.Name }} oci://registry-1.docker.io/bitnamicharts/rabbitmq \
-      --set memoryHighWatermark.enabled=true \
-      --set memoryHighWatermark.type="relative" \
-      --set memoryHighWatermark.value="0.4" \
-      --set resourcesPreset="micro"
-
-    Using resources:
     $ helm install {{ .Release.Name }} oci://registry-1.docker.io/bitnamicharts/rabbitmq \
       --set memoryHighWatermark.enabled=true \
       --set memoryHighWatermark.type="relative" \
@@ -269,29 +278,37 @@ Get the initialization scripts volume name.
 {{- end -}}
 
 {{/*
+Returns the available value for certain key in an existing secret (if it exists),
+otherwise it generates a random value.
+*/}}
+{{- define "getValueFromSecret" }}
+    {{- $len := (default 16 .Length) | int -}}
+    {{- $obj := (lookup "v1" "Secret" .Namespace .Name).data -}}
+    {{- if $obj }}
+        {{- index $obj .Key | trimAll "\"" | b64dec -}}
+    {{- else -}}
+        {{- randAlphaNum $len -}}
+    {{- end -}}
+{{- end }}
+
+{{/*
 Get the extraConfigurationExistingSecret secret.
 */}}
 {{- define "rabbitmq.extraConfiguration" -}}
 {{- if not (empty .Values.extraConfigurationExistingSecret) -}}
-    {{- include "common.secrets.lookup" (dict "secret" .Values.extraConfigurationExistingSecret "key" "extraConfiguration" "context" $) | b64dec -}}
+    {{- include "getValueFromSecret" (dict "Namespace" .Release.Namespace "Name" .Values.extraConfigurationExistingSecret "Length" 10 "Key" "extraConfiguration")  -}}
 {{- else -}}
     {{- tpl .Values.extraConfiguration . -}}
 {{- end -}}
 {{- end -}}
 
 {{/*
-Get the value for queue_leader_locator.  This will provide backwards compatibility for the old queue_master_locator configuration,
-mapping old values into the correct new values.
+Get the TLS.sslOptions.Password secret.
 */}}
-{{- define "rabbitmq.queueLocator" -}}
-{{- $value := .Values.queue_leader_locator -}}
-
-{{- if not (empty .Values.queue_master_locator) -}}
-    {{- if eq .Values.queue_master_locator "client-local" -}}
-        {{- $value = "client-local" -}}
-    {{- else -}}
-        {{- $value = "balanced" -}}
-    {{- end -}}
+{{- define "rabbitmq.tlsSslOptionsPassword" -}}
+{{- if not (empty .Values.auth.tls.sslOptionsPassword.password) -}}
+    {{- .Values.auth.tls.sslOptionsPassword.password -}}
+{{- else -}}
+    {{- include "getValueFromSecret" (dict "Namespace" .Release.Namespace "Name" .Values.auth.tls.sslOptionsPassword.existingSecret "Length" 10 "Key" .Values.auth.tls.sslOptionsPassword.key)  -}}
 {{- end -}}
-{{- $value -}}
 {{- end -}}
