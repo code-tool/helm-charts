@@ -1,18 +1,4 @@
 {{/* vim: set filetype=mustache: */}}
-{{/*
-Expand the name of the chart.
-*/}}
-{{- define "pgbouncer.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-
-{{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "pgbouncer.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
 
 {{/*
 Create content for userlist.txt secret
@@ -62,15 +48,3 @@ Contruct and return the exporter image to use
 {{- end -}}
 {{- end -}}
 
-{{/*
-Common labels
-*/}}
-{{- define "pgbouncer.labels" -}}
-helm.sh/chart: {{ include "pgbouncer.chart" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/name: {{ include "pgbouncer.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end -}}
