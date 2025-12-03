@@ -30,4 +30,42 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/pgbouncer-0.0.1/pgbouncer-0.0.1.tgz
     version: 0.0.1
-generated: "2025-12-03T13:45:47.697556609Z"
+  rabbitmq:
+  - apiVersion: v2
+    appVersion: 3.13.7
+    created: "2025-12-03T14:02:33.901062902Z"
+    dependencies:
+    - name: common
+      repository: https://code-tool.github.io/helm-charts
+      version: 0.x.x
+    description: RabbitMQ is an open source general-purpose message broker that is
+      designed for consistent, highly-available messaging scenarios (both synchronous
+      and asynchronous).
+    digest: bc15fb97e292d62120a4b009f7efa30ff6252ef9814ffaa998a56281d657d86a
+    name: rabbitmq
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/rabbitmq
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/rabbitmq-0.0.1/rabbitmq-0.0.1.tgz
+    version: 0.0.1
+  redis:
+  - apiVersion: v2
+    appVersion: 7.2.1
+    created: "2025-12-03T14:02:34.111672326Z"
+    dependencies:
+    - name: common
+      repository: https://code-tool.github.io/helm-charts
+      version: 0.x.x
+    description: Redis is an open source, advanced key-value store. It is often referred
+      to as a data structure server since keys can contain strings, hashes, lists,
+      sets and sorted sets
+    digest: 154713b448650dba0f73193bb2f8a6ba06e79e57d4315007cda636a5626f2ec8
+    name: redis
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/redis
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
+    version: 0.0.1
+generated: "2025-12-03T14:02:34.111683226Z"
