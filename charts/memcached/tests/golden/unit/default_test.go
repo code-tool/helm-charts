@@ -28,8 +28,16 @@ func TestGoldenDefault(t *testing.T) {
 		GoldenFileName: "default",
 		Templates: []string{
 			"templates/deployment.yaml",
-			"templates/service.yaml",
+			//"templates/extra-list.yaml",
+			//"templates/hpa.yaml",
+			//"templates/metrics-svc.yaml",
+			"templates/networkpolicy.yaml",
+			"templates/pdb.yaml",
+			//"templates/secrets.yaml",
 			"templates/serviceaccount.yaml",
+			//"templates/servicemonitor.yaml",
+			"templates/service.yaml",
+			//"templates/statefulset.yaml",
 		},
 		SetValues: defaultSetValues,
 		ValuesFiles: []string{
