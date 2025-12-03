@@ -1,0 +1,12 @@
+name: pgbouncer
+version: 0.0.1
+appVersion: 1.24.1
+apiVersion: v2
+description: PgBouncer is lightweight connection pooler for PostgreSQL
+type: application
+sources:
+  - https://github.com/code-tool/helm-charts/tree/main/charts/pgbouncer
+dependencies:
+- name: common
+  repository: https://code-tool.github.io/helm-charts
+  version: 0.x.x
