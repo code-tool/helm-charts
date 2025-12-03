@@ -1,13 +1,13 @@
-name: rabbitmq
+name: redis
 version: 0.0.1
 appVersion: 7.2.1
 apiVersion: v2
-description: Redis(R) is an open source, advanced key-value store. It is often referred
+description: Redis is an open source, advanced key-value store. It is often referred
   to as a data structure server since keys can contain strings, hashes, lists, sets
-  and sorted sets.
+  and sorted sets
 type: application
 sources:
-  - https://github.com/code-tool/helm-charts/tree/main/charts/rabbitmq
+  - https://github.com/code-tool/helm-charts/tree/main/charts/redis
 dependencies:
   - name: common
     repository: https://code-tool.github.io/helm-charts
