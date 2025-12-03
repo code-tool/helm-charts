@@ -1,8 +1,10 @@
-name: pgbouncer
+name: rabbitmq
 version: 0.0.1
-appVersion: 1.24.1
+appVersion: 7.2.1
 apiVersion: v2
-description: PgBouncer is lightweight connection pooler for PostgreSQL
+description: Redis(R) is an open source, advanced key-value store. It is often referred
+  to as a data structure server since keys can contain strings, hashes, lists, sets
+  and sorted sets.
 type: application
 sources:
   - https://github.com/code-tool/helm-charts/tree/main/charts/pgbouncer
@@ -10,3 +12,4 @@ dependencies:
   - name: common
     repository: https://code-tool.github.io/helm-charts
     version: 0.x.x
+
