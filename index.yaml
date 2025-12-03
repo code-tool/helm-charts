@@ -16,6 +16,22 @@ entries:
   pgbouncer:
   - apiVersion: v2
     appVersion: 1.24.1
+    created: "2025-12-03T19:36:53.386491889Z"
+    dependencies:
+    - name: common
+      repository: https://code-tool.github.io/helm-charts
+      version: 0.x.x
+    description: PgBouncer is lightweight connection pooler for PostgreSQL
+    digest: 14509a6d77fa4d10b3b53ed62f255e7ee33042664c4425ec3beaa78776f07f15
+    name: pgbouncer
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/pgbouncer
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/pgbouncer-0.1.0/pgbouncer-0.1.0.tgz
+    version: 0.1.0
+  - apiVersion: v2
+    appVersion: 1.24.1
     created: "2025-12-03T13:45:47.697537463Z"
     dependencies:
     - name: common
@@ -68,4 +84,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2025-12-03T14:02:34.111683226Z"
+generated: "2025-12-03T19:36:53.386505814Z"
