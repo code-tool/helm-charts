@@ -21,11 +21,6 @@ global:
   imagePullSecrets: []
   defaultStorageClass: ""
   storageClass: ""
-  ## Security parameters
-  ##
-  security:
-    ## @param global.security.allowInsecureImages Allows skipping image verification
-    allowInsecureImages: false
   ## Compatibility adaptations for Kubernetes platforms
   ##
   compatibility:
@@ -49,13 +44,14 @@ global:
 image:
   registry: docker.io
   repository: bitnami/rabbitmq
-  tag: 4.1.3-debian-12-r1
+  tag: 3.13.7-debian-12-r2
   digest: ""
   ## set to true if you would like to see extra information on logs
   ## It turns BASH and/or NAMI debugging in the image
   ##
   debug: false
   ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
   ##
   pullPolicy: IfNotPresent
@@ -107,9 +103,6 @@ serviceBindings:
 ## If you experience slow pod startups or slow running of the scripts you probably want to set this to `false`.
 ##
 enableServiceLinks: true
-## @param usePasswordFiles Mount credentials as files instead of using environment variables
-##
-usePasswordFiles: true
 ## Enable diagnostic mode in the deployment
 ##
 diagnosticMode:
@@ -161,10 +154,6 @@ auth:
   ## ref: https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq#environment-variables
   ##
   securePassword: true
-  ## @param auth.updatePassword Update RabbitMQ password on secret change
-  ## ref: https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq#environment-variables
-  ##
-  updatePassword: false
   ## @param auth.existingPasswordSecret Existing secret with RabbitMQ credentials (existing secret must contain a value for `rabbitmq-password` key or override with setting auth.existingSecretPasswordKey)
   ## e.g:
   ## existingPasswordSecret: name-of-existing-secret
@@ -254,7 +243,7 @@ memoryHighWatermark:
   ## Memory high watermark value.
   ## @param memoryHighWatermark.value Memory high watermark value
   ## The default value of 0.4 stands for 40% of available RAM
-  ## Note: the memory relative limit is applied to the resourcesPreset memory limit or the resource.limits.memory to calculate the memory threshold
+  ## Note: the memory relative limit is applied to the resource.limits.memory to calculate the memory threshold
   ## You can also use an absolute value, e.g.: 256Mi
   ##
   value: 0.4
@@ -262,12 +251,9 @@ memoryHighWatermark:
 ##
 plugins: "rabbitmq_management rabbitmq_peer_discovery_k8s"
 
-## @param queue_leader_locator Changes the queue_leader_locator setting in the rabbitmq config file
+## @param queue_master_locator Changes the queue_master_locator setting in the rabbitmq config file
 ##
-queue_leader_locator: balanced
-## @param queue_master_locator DEPRECATED.  Use queue_leader_locator instead
-##
-queue_master_locator: ""
+queue_master_locator: min-masters
 
 ## @param communityPlugins List of Community plugins (URLs) to be downloaded during container initialization
 ## Combine it with extraPlugins to also enable them.
@@ -358,18 +344,6 @@ containerPorts:
   manager: 15672
   epmd: 4369
   metrics: 9419
-## Host Ports
-## @param hostPorts.amqp
-## @param hostPorts.amqpTls
-## @param hostPorts.manager
-## @param hostPorts.metrics
-##
-hostPorts:
-  amqp: ""
-  amqpTls: ""
-  manager: ""
-  metrics: ""
-
 ## @param initScripts Dictionary of init scripts. Evaluated as a template.
 ## Specify dictionary of scripts to be run at first boot
 ## Alternatively, you can put your scripts under the files/docker-entrypoint-initdb.d directory
@@ -403,9 +377,6 @@ extraContainerPorts: []
 ## See : https://www.rabbitmq.com/networking.html for additional information
 ##
 tcpListenOptions:
-  ## @param tcpListenOptions.enabled Enable TCP listen options of RabbitMQ
-  ##
-  enabled: true
   ## @param tcpListenOptions.backlog Maximum size of the unaccepted TCP connections queue
   ##
   backlog: 128
@@ -450,12 +421,11 @@ configuration: |-
   {{- if .Values.loadDefinition.enabled }}
   load_definitions = {{ .Values.loadDefinition.file }}
   {{- end }}
-  # queue leader locator
-  queue_leader_locator = {{ include "rabbitmq.queueLocator" . }}
+  # queue master locator
+  queue_master_locator = {{ .Values.queue_master_locator }}
   # enable loopback user
   {{- if not (empty .Values.auth.username) }}
-  {{- $sanitizedUsername := regexQuoteMeta .Values.auth.username }}
-  loopback_users.{{ $sanitizedUsername }} = {{ .Values.auth.enableLoopbackUser }}
+  loopback_users.{{ .Values.auth.username }} = {{ .Values.auth.enableLoopbackUser }}
   {{- else}}
   loopback_users.guest = {{ .Values.auth.enableLoopbackUser }}
   {{- end }}
@@ -468,7 +438,7 @@ configuration: |-
   ssl_options.certfile = /opt/bitnami/rabbitmq/certs/server_certificate.pem
   ssl_options.keyfile = /opt/bitnami/rabbitmq/certs/server_key.pem
   {{- if .Values.auth.tls.sslOptionsPassword.enabled }}
-  ssl_options.password = {{ include "common.secrets.passwords.manage" (dict "secret" .Values.auth.tls.sslOptionsPassword.existingSecret "key" .Values.auth.tls.sslOptionsPassword.key "providedValues" (list "auth.tls.sslOptionsPassword.password") "skipB64enc" true "failOnNew" false "context" $) }}
+  ssl_options.password = {{ template "rabbitmq.tlsSslOptionsPassword" . }}
   {{- end }}
   {{- end }}
   {{- if .Values.ldap.enabled }}
@@ -525,16 +495,12 @@ configuration: |-
   {{- if .Values.memoryHighWatermark.enabled }}
   ## Memory Threshold
   ##
-  {{- if (dig "limits" "memory" "" .Values.resources) }}
   total_memory_available_override_value = {{ include "rabbitmq.toBytes" (dig "limits" "memory" "" .Values.resources) }}
-  {{- end }}
   {{- if (eq .Values.memoryHighWatermark.type "absolute") }}
   vm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ include "rabbitmq.toBytes" .Values.memoryHighWatermark.value }}
   {{- else if (eq .Values.memoryHighWatermark.type "relative") }}
   vm_memory_high_watermark.{{ .Values.memoryHighWatermark.type }} = {{ .Values.memoryHighWatermark.value }}
   {{- end }}
-  {{- end }}
-  {{- if .Values.tcpListenOptions.enabled }}
   ## TCP Listen Options
   ##
   tcp_listen_options.backlog = {{ .Values.tcpListenOptions.backlog }}
@@ -801,7 +767,7 @@ podSecurityContext:
 ##
 containerSecurityContext:
   enabled: true
-  seLinuxOptions: {}
+  seLinuxOptions: null
   runAsUser: 1001
   runAsGroup: 1001
   runAsNonRoot: true
@@ -1176,10 +1142,6 @@ service:
   ##     timeoutSeconds: 300
   ##
   sessionAffinityConfig: {}
-  ## @param service.trafficDistribution Traffic Distribution provides another
-  ## way to influence traffic routing within a Kubernetes Service.
-  ##
-  trafficDistribution: "PreferClose"
 ## Configure the ingress resource that allows you to access the
 ## RabbitMQ installation. Set up the URL
 ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/
@@ -1598,9 +1560,10 @@ volumePermissions:
   image:
     registry: docker.io
     repository: bitnami/os-shell
-    tag: 12-debian-12-r50
+    tag: 12-debian-12-r28
     digest: ""
     ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
     ##
     pullPolicy: IfNotPresent
@@ -1639,5 +1602,5 @@ volumePermissions:
   ## @param volumePermissions.containerSecurityContext.runAsUser User ID for the init container
   ##
   containerSecurityContext:
-    seLinuxOptions: {}
+    seLinuxOptions: null
     runAsUser: 0

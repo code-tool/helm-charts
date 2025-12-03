@@ -1,0 +1,158 @@
+---
+# Source: external-dns/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: golden-file-test-external-dns
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: external-dns
+    app.kubernetes.io/version: 0.18.0
+spec:
+  revisionHistoryLimit: 10
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: golden-file-test
+      app.kubernetes.io/name: external-dns
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: golden-file-test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: external-dns
+        app.kubernetes.io/version: 0.18.0
+    spec:
+      
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: golden-file-test
+                    app.kubernetes.io/name: external-dns
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      automountServiceAccountToken: true
+      serviceAccountName: golden-file-test-external-dns
+      containers:
+        - name: external-dns
+          image: docker.io/bitnami/external-dns:0.18.0-debian-12-r4
+          imagePullPolicy: "IfNotPresent"
+          args:
+            # Generic arguments
+            - --metrics-address=:7979
+            - --log-level=info
+            - --log-format=text
+            - --policy=upsert-only
+            - --provider=aws
+            - --registry=txt
+            - --interval=1m
+            - --source=service
+            - --source=ingress
+            # AWS arguments
+            - --aws-api-retries=3
+            - --aws-zone-type=
+            - --aws-batch-change-size=1000
+          env:
+            # AWS environment variables
+            - name: AWS_DEFAULT_REGION
+              value: us-east-1
+          envFrom:
+          ports:
+            - name: http
+              containerPort: 7979
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 2
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+---
+# Source: external-dns/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: golden-file-test-external-dns
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: external-dns
+    app.kubernetes.io/version: 0.18.0
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 7979
+      protocol: TCP
+      targetPort: http
+  selector:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/name: external-dns
+---
+# Source: external-dns/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: golden-file-test-external-dns
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: external-dns
+    app.kubernetes.io/version: 0.18.0
+automountServiceAccountToken: false
