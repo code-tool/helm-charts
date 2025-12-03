@@ -1,18 +1,20 @@
-{{- if .Values.podDisruptionBudget.enabled }}
-apiVersion: {{ template "podDisruptionBudget.apiVersion" . }}
+{{- if and .Values.pdb.create }}
+apiVersion: {{ include "common.capabilities.policy.apiVersion" . }}
 kind: PodDisruptionBudget
 metadata:
-  name: {{ template "pgbouncer.fullname" . }}
-  labels:
-    {{- include "pgbouncer.labels" . | nindent 4 }}
+  name: {{ template "common.names.fullname" . }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
 spec:
-  {{- if .Values.podDisruptionBudget.maxUnavailable }}
-  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- if .Values.pdb.minAvailable }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
   {{- end }}
-  {{- if .Values.podDisruptionBudget.minAvailable }}
-  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- if or .Values.pdb.maxUnavailable (not .Values.pdb.minAvailable) }}
+  maxUnavailable: {{ .Values.pdb.maxUnavailable | default 1 }}
   {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.podLabels .Values.commonLabels ) "context" . ) }}
   selector:
-    matchLabels:
-      {{- include "pgbouncer.selectorLabels" . | nindent 6 }}
-{{- end }}
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+{{- end -}}
