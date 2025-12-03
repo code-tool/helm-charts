@@ -1,27 +1,23 @@
 {{- if eq .Values.kind "DaemonSet" }}
-apiVersion: {{ template "deployment.apiVersion" . }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: DaemonSet
 metadata:
   name: {{ include "common.names.fullname" . }}
-  labels:
-    {{- include "pgbouncer.labels" . | nindent 4 }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
 spec:
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   {{ if .Values.minReadySeconds -}}
   minReadySeconds: {{ .Values.minReadySeconds }}
   {{ end -}}
+  {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.podLabels .Values.commonLabels ) "context" . ) }}
   selector:
-    matchLabels:
-      {{- include "pgbouncer.selectorLabels" . | nindent 6 }}
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
   template:
     metadata:
-      labels:
-        {{- include "pgbouncer.selectorLabels" . | nindent 8 }}
-        {{- if .Values.podLabels }}
-        {{- range $key, $value := .Values.podLabels }}
-        {{ $key }}: {{ $value | quote }}
-        {{- end -}}
-        {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/userlist: {{ include (print $.Template.BasePath "/userlist-secret.yaml") . | sha256sum }}
@@ -31,8 +27,8 @@ spec:
         prometheus.io/port: "{{ .Values.pgbouncerExporter.servicePort }}"
         prometheus.io/path: "/metrics"
         {{- end }}
-        {{- range $key, $value := .Values.podAnnotations }}
-        {{ $key }}: {{ $value | quote }}
+        {{- if .Values.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
         {{- end }}
     spec:
       serviceAccountName: {{ template "pgbouncer.serviceAccountName" . }}

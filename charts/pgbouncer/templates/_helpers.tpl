@@ -74,30 +74,3 @@ app.kubernetes.io/name: {{ include "pgbouncer.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
-
-{{/*
-Selector labels
-*/}}
-{{- define "pgbouncer.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "pgbouncer.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end -}}
-
-{{/*
-Use stable API versions (Kubernetes >=1.22)
-*/}}
-{{- define "deployment.apiVersion" -}}
-apps/v1
-{{- end -}}
-
-{{- define "podDisruptionBudget.apiVersion" -}}
-policy/v1
-{{- end -}}
-
-{{- define "role.apiVersion" -}}
-rbac.authorization.k8s.io/v1
-{{- end -}}
-
-{{- define "roleBinding.apiVersion" -}}
-rbac.authorization.k8s.io/v1
-{{- end -}}

@@ -1,5 +1,5 @@
 {{- if eq .Values.kind "Deployment" }}
-apiVersion: {{ template "deployment.apiVersion" . }}
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
   name: {{ include "common.names.fullname" . }}
