@@ -13,4 +13,33 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/common-0.0.2/common-0.0.2.tgz
     version: 0.0.2
-generated: "2025-12-03T13:20:43.684259618Z"
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2025-12-03T13:45:47.559309133Z"
+    description: A library Helm chart for common logic
+    digest: 12326e6c601acf228c74ac4324cc5fe38dadb6ffc2a88dcc5aca4709c7616b11
+    name: common
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/common
+    type: library
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/common-0.0.1/common-0.0.1.tgz
+    version: 0.0.1
+  pgbouncer:
+  - apiVersion: v2
+    appVersion: 1.24.1
+    created: "2025-12-03T13:45:47.697537463Z"
+    dependencies:
+    - name: common
+      repository: https://code-tool.github.io/helm-charts
+      version: 0.x.x
+    description: PgBouncer is lightweight connection pooler for PostgreSQL
+    digest: 05b9daeecbc3df9df2bb2863b8456d2a468a67e3343fe06454eb3c24d8939363
+    name: pgbouncer
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/pgbouncer
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/pgbouncer-0.0.1/pgbouncer-0.0.1.tgz
+    version: 0.0.1
+generated: "2025-12-03T13:45:47.697556609Z"
