@@ -1,5 +1,5 @@
 name: pgbouncer
-version: 0.1.0
+version: 0.1.1
 appVersion: 1.24.1
 apiVersion: v2
 description: PgBouncer is lightweight connection pooler for PostgreSQL
