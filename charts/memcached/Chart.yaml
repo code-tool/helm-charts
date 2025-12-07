@@ -1,5 +1,5 @@
 name: memcached
-version: 0.0.1
+version: 0.0.2
 appVersion: 1.6.39
 apiVersion: v2
 description: Memcached is an high-performance, distributed memory object caching system,
