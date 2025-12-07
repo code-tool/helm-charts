@@ -13,6 +13,24 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/common-0.0.1/common-0.0.1.tgz
     version: 0.0.1
+  memcached:
+  - apiVersion: v2
+    appVersion: 1.6.39
+    created: "2025-12-07T09:51:41.62031534Z"
+    dependencies:
+    - name: common
+      repository: https://code-tool.github.io/helm-charts
+      version: 0.x.x
+    description: Memcached is an high-performance, distributed memory object caching
+      system, generic in nature, but intended for use in speeding up dynamic web applications
+    digest: 9829eaf54cc7ec1afdca1f1f75be03d6a856e2b701e23e96af199def6b4507a8
+    name: memcached
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/memcached
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/memcached-0.0.2/memcached-0.0.2.tgz
+    version: 0.0.2
   pgbouncer:
   - apiVersion: v2
     appVersion: 1.24.1
@@ -84,4 +102,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2025-12-03T19:36:53.386505814Z"
+generated: "2025-12-07T09:51:41.620327375Z"
