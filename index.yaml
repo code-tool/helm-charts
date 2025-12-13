@@ -13,6 +13,24 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/common-0.0.1/common-0.0.1.tgz
     version: 0.0.1
+  local-path-provisioner:
+  - apiVersion: v1
+    appVersion: v0.0.32
+    created: "2025-12-13T19:05:48.811919844Z"
+    description: Use HostPath for persistent local storage with Kubernetes
+    digest: e57a28bf293df9ac5cf36179a5cdc6e32f7cf819d4c15144cced5189211b0251
+    home: https://github.com/rancher/local-path-provisioner
+    keywords:
+    - storage
+    - hostpath
+    kubeVersion: '>=1.12.0-r0'
+    name: local-path-provisioner
+    sources:
+    - https://github.com/rancher/local-path-provisioner.git
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/local-path-provisioner-0.0.1/local-path-provisioner-0.0.1.tgz
+    version: 0.0.1
   memcached:
   - apiVersion: v2
     appVersion: 1.6.39
@@ -102,4 +120,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2025-12-07T09:51:41.620327375Z"
+generated: "2025-12-13T19:05:48.811954949Z"
