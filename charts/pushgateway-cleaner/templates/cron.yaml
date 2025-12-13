@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cron-pushgateway-clean
+  labels:
+    app: pushgateway-clean
+    type: cron
+spec:
+  schedule: {{ .Values.cronSchedule | quote }}
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        app: pushgateway-clean
+        type: cron
+    spec:
+      backoffLimit: 10
+      template:
+        metadata:
+          labels:
+            app: pushgateway-clean
+            type: cron
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: cleaner
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            args:
+              - "--metric-url={{ .Values.metricUrl }}"
