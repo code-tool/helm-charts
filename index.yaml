@@ -49,6 +49,14 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/memcached-0.0.2/memcached-0.0.2.tgz
     version: 0.0.2
+  overprovisioning:
+  - apiVersion: v2
+    created: "2025-12-13T19:09:53.397953431Z"
+    digest: bd07826537b21844d73207bd3aff615934aced13c7d26a2f07575e11db1c15b1
+    name: overprovisioning
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/overprovisioning-0.0.5/overprovisioning-0.0.5.tgz
+    version: 0.0.5
   pgbouncer:
   - apiVersion: v2
     appVersion: 1.24.1
@@ -120,4 +128,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2025-12-13T19:05:48.811954949Z"
+generated: "2025-12-13T19:09:53.397962558Z"
