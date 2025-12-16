@@ -1,5 +1,5 @@
 name: redis
-version: 0.0.2
+version: 0.0.3
 appVersion: 7.2.1
 apiVersion: v2
 description: Redis is an open source, advanced key-value store. It is often referred
