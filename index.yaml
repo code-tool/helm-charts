@@ -13,6 +13,24 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/common-0.0.1/common-0.0.1.tgz
     version: 0.0.1
+  external-dns:
+  - apiVersion: v2
+    appVersion: 0.18.0
+    created: "2025-12-19T13:47:38.810509515Z"
+    dependencies:
+    - name: common
+      repository: https://code-tool.github.io/helm-charts
+      version: 0.x.x
+    description: ExternalDNS is a Kubernetes addon that configures public DNS servers
+      with information about exposed Kubernetes services to make them discoverable.
+    digest: 303f713536958e7f88a6bd3dccf1d6302c112fda205b63eb32d8587034e1b5a7
+    name: external-dns
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/external-dns
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/external-dns-0.0.3/external-dns-0.0.3.tgz
+    version: 0.0.3
   local-path-provisioner:
   - apiVersion: v1
     appVersion: v0.0.32
@@ -229,4 +247,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2025-12-16T09:50:06.139813141Z"
+generated: "2025-12-19T13:47:38.810543379Z"
