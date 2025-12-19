@@ -190,7 +190,7 @@ spec:
       serviceAccountName: golden-file-test-external-dns
       containers:
         - name: external-dns
-          image: docker.io/bitnami/external-dns:0.18.0-debian-12-r4
+          image: ghcr.io/code-tool/helm-charts/external-dns:0.18.0-debian-12-r4
           imagePullPolicy: "IfNotPresent"
           args:
             # Generic arguments
