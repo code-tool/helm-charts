@@ -213,6 +213,24 @@ entries:
   redis:
   - apiVersion: v2
     appVersion: 7.2.1
+    created: "2026-01-12T12:46:42.004154167Z"
+    dependencies:
+    - name: common
+      repository: https://code-tool.github.io/helm-charts
+      version: 0.x.x
+    description: Redis is an open source, advanced key-value store. It is often referred
+      to as a data structure server since keys can contain strings, hashes, lists,
+      sets and sorted sets
+    digest: 3d3314040dcccab77b520f7d65ee9e034dc48769453a48935a48e2c8f0bf4331
+    name: redis
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/redis
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/redis-0.1.0/redis-0.1.0.tgz
+    version: 0.1.0
+  - apiVersion: v2
+    appVersion: 7.2.1
     created: "2025-12-16T09:50:06.139785279Z"
     dependencies:
     - name: common
@@ -247,4 +265,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2025-12-19T13:47:38.810543379Z"
+generated: "2026-01-12T12:46:42.004174466Z"
