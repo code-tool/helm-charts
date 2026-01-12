@@ -1,14 +1,18 @@
 architecture: replication
 auth:
   enabled: false
+  sentinel: false
+  usePasswordFileFromSecret: false
+  usePasswordFiles: false
 clusterDomain: cluster.local
 commonConfiguration: |-
   appendonly no
   save ""
 image:
+  bitnami: false
   registry: docker.io
-  repository: redis/redis-stack
-  tag: 7.4.0-v3
+  repository: library/redis
+  tag: "8.4.0"
 master:
   count: 0
 metrics:
@@ -57,7 +61,6 @@ replica:
     enabled: true
     host: external-intance-hostname.example.com
   extraFlags:
-  - --loadmodule /opt/redis-stack/lib/redisearch.so
   - --protected-mode no
   - --replica-priority 0
   - --replica-announced no
@@ -97,10 +100,7 @@ replica:
     operator: Equal
     value: RedisPool
 sentinel:
-  image:
-    registry: docker.io
-    repository: bitnamilegacy/redis-sentinel
-    tag: 7.2.5-debian-12-r2
+  enabled: false
 sysctl:
   command:
   - /bin/sh

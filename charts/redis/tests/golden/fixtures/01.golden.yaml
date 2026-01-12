@@ -1,4 +1,67 @@
 ---
+# Source: redis/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: golden-file-test-redis
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: golden-file-test
+      app.kubernetes.io/name: redis
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow inbound connections
+    - ports:
+        - port: 6379
+        - port: 26379
+    # Allow prometheus scrapes for metrics
+    - ports:
+        - port: 9121
+---
+# Source: redis/templates/sentinel/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: golden-file-test-redis-node
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+    app.kubernetes.io/component: node
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: golden-file-test
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: node
+---
+# Source: redis/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: false
+metadata:
+  name: golden-file-test-redis
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+---
 # Source: redis/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -37,34 +100,6 @@ data:
     sentinel parallel-syncs mymaster 1
     # User-supplied sentinel configuration:
     # End of sentinel configuration
----
-# Source: redis/templates/headless-svc.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: golden-file-test-redis-headless
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
-  annotations:
-    
-spec:
-  type: ClusterIP
-  clusterIP: None
-  publishNotReadyAddresses: true
-  ports:
-    - name: tcp-redis
-      port: 6379
-      targetPort: redis
-    - name: tcp-sentinel
-      port: 26379
-      targetPort: redis-sentinel
-  selector:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/name: redis
 ---
 # Source: redis/templates/health-configmap.yaml
 apiVersion: v1
@@ -121,8 +156,6 @@ data:
     fi
   ping_sentinel.sh: |-
     #!/bin/bash
-    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
-    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
     response=$(
       timeout -s 15 $1 \
       redis-cli \
@@ -207,97 +240,6 @@ data:
     "$script_dir/ping_liveness_master.sh" $1 || exit_status=$?
     exit $exit_status
 ---
-# Source: redis/templates/master/serviceaccount.yaml
-apiVersion: v1
-kind: ServiceAccount
-automountServiceAccountToken: false
-metadata:
-  name: golden-file-test-redis-master
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
----
-# Source: redis/templates/metrics-svc.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: golden-file-test-redis-metrics
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
-    app.kubernetes.io/component: metrics
-spec:
-  type: ClusterIP
-  ports:
-    - name: http-metrics
-      port: 
-      protocol: TCP
-      targetPort: metrics
-  selector:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/name: redis
----
-# Source: redis/templates/networkpolicy.yaml
-kind: NetworkPolicy
-apiVersion: networking.k8s.io/v1
-metadata:
-  name: golden-file-test-redis
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/instance: golden-file-test
-      app.kubernetes.io/name: redis
-  policyTypes:
-    - Ingress
-    - Egress
-  egress:
-    # Allow dns resolution
-    - ports:
-        - port: 53
-          protocol: UDP
-    # Allow outbound connections to other cluster pods
-    - ports:
-        - port: 6379
-        - port: 26379
-      to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/instance: golden-file-test
-              app.kubernetes.io/name: redis
-  ingress:
-    # Allow inbound connections
-    - ports:
-        - port: 6379
-        - port: 26379
-    # Allow prometheus scrapes for metrics
-    - ports:
-        - port: 9121
----
-# Source: redis/templates/replicas/serviceaccount.yaml
-apiVersion: v1
-kind: ServiceAccount
-automountServiceAccountToken: false
-metadata:
-  name: golden-file-test-redis-replica
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
----
 # Source: redis/templates/scripts-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -312,7 +254,7 @@ metadata:
 data:
   start-node.sh: |
     #!/bin/bash
-
+    
     . /opt/bitnami/scripts/libos.sh
     . /opt/bitnami/scripts/liblog.sh
     . /opt/bitnami/scripts/libvalidations.sh
@@ -430,7 +372,7 @@ data:
       REDIS_MASTER_HOST="$REDIS_EXTERNAL_MASTER_HOST"
       REDIS_MASTER_PORT_NUMBER="${REDIS_EXTERNAL_MASTER_PORT}"
     fi
-
+    
     if [[ -f /opt/bitnami/redis/mounted-etc/replica.conf ]];then
         cp /opt/bitnami/redis/mounted-etc/replica.conf /opt/bitnami/redis/etc/replica.conf
     fi
@@ -442,6 +384,7 @@ data:
     echo "" >> /opt/bitnami/redis/etc/replica.conf
     echo "replica-announce-port $REDISPORT" >> /opt/bitnami/redis/etc/replica.conf
     echo "replica-announce-ip $(get_full_hostname "$HOSTNAME")" >> /opt/bitnami/redis/etc/replica.conf
+    
     ARGS=("--port" "${REDIS_PORT}")
 
     if [[ "$REDIS_REPLICATION_MODE" = "slave" ]] || [[ "$REDIS_REPLICATION_MODE" = "replica" ]]; then
@@ -454,7 +397,7 @@ data:
 
   start-sentinel.sh: |
     #!/bin/bash
-
+    
     . /opt/bitnami/scripts/libos.sh
     . /opt/bitnami/scripts/libvalidations.sh
     . /opt/bitnami/scripts/libfile.sh
@@ -502,7 +445,7 @@ data:
         value="${value//&/\\&}"
         value="${value//\?/\\?}"
         [[ "$value" = "" ]] && value="\"$value\""
-
+        
         replace_in_file "/opt/bitnami/redis-sentinel/etc/sentinel.conf" "^#*\s*${key} .*" "${key} ${value}" false
     }
     sentinel_conf_add() {
@@ -544,9 +487,11 @@ data:
       REDIS_MASTER_HOST="$REDIS_EXTERNAL_MASTER_HOST"
       REDIS_MASTER_PORT_NUMBER="${REDIS_EXTERNAL_MASTER_PORT}"
     fi
-
+    
     cp /opt/bitnami/redis-sentinel/mounted-etc/sentinel.conf /opt/bitnami/redis-sentinel/etc/sentinel.conf
+    
     printf "\nsentinel myid %s" "$(host_id "$HOSTNAME")" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
+    
 
     if [[ -z "$REDIS_MASTER_HOST" ]] || [[ -z "$REDIS_MASTER_PORT_NUMBER" ]]
     then
@@ -581,19 +526,20 @@ data:
         add_known_sentinel "$hostname" "$ip"
         add_known_replica "$hostname" "$ip"
     done
-
+    
     echo "" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
     echo "sentinel announce-hostnames yes" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
     echo "sentinel resolve-hostnames yes" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
     echo "sentinel announce-port $SERVPORT" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
     echo "sentinel announce-ip $(get_full_hostname "$HOSTNAME")" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
+    
     exec redis-server /opt/bitnami/redis-sentinel/etc/sentinel.conf --sentinel
   prestop-sentinel.sh: |
     #!/bin/bash
-
+    
     . /opt/bitnami/scripts/libvalidations.sh
     . /opt/bitnami/scripts/libos.sh
-
+    
     HEADLESS_SERVICE="golden-file-test-redis-headless.test-namespace.svc.cluster.local"
 
     get_full_hostname() {
@@ -617,9 +563,7 @@ data:
 
     REDIS_SERVICE="golden-file-test-redis.test-namespace.svc.cluster.local"
 
-    # redis-cli automatically consumes credentials from the REDISCLI_AUTH variable
-    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
-    [[ -f "$REDIS_PASSWORD_FILE" ]] && export REDISCLI_AUTH="$(< "${REDIS_PASSWORD_FILE}")"
+    
 
     if ! sentinel_failover_finished; then
         echo "I am the master pod and you are stopping me. Starting sentinel failover"
@@ -635,10 +579,10 @@ data:
     fi
   prestop-redis.sh: |
     #!/bin/bash
-
+    
     . /opt/bitnami/scripts/libvalidations.sh
     . /opt/bitnami/scripts/libos.sh
-
+    
     run_redis_command() {
         if is_boolean_yes "$REDIS_TLS_ENABLED"; then
             redis-cli -h 127.0.0.1 -p "$REDIS_TLS_PORT" --tls --cert "$REDIS_TLS_CERT_FILE" --key "$REDIS_TLS_KEY_FILE" --cacert "$REDIS_TLS_CA_FILE" "$@"
@@ -661,9 +605,9 @@ data:
 
     run_sentinel_command() {
         if is_boolean_yes "$REDIS_SENTINEL_TLS_ENABLED"; then
-            redis-cli -h "$REDIS_SERVICE" -p "$REDIS_SENTINEL_PORT" --tls --cert "$REDIS_SENTINEL_TLS_CERT_FILE" --key "$REDIS_SENTINEL_TLS_KEY_FILE" --cacert "$REDIS_SENTINEL_TLS_CA_FILE" sentinel "$@"
+            env -u REDISCLI_AUTH redis-cli -h "$REDIS_SERVICE" -p "$REDIS_SENTINEL_PORT" --tls --cert "$REDIS_SENTINEL_TLS_CERT_FILE" --key "$REDIS_SENTINEL_TLS_KEY_FILE" --cacert "$REDIS_SENTINEL_TLS_CA_FILE" sentinel "$@"
         else
-            redis-cli -h "$REDIS_SERVICE" -p "$REDIS_SENTINEL_PORT" sentinel "$@"
+            env -u REDISCLI_AUTH redis-cli -h "$REDIS_SERVICE" -p "$REDIS_SENTINEL_PORT" sentinel "$@"
         fi
     }
     sentinel_failover_finished() {
@@ -692,6 +636,57 @@ data:
     else
         exit 0
     fi
+---
+# Source: redis/templates/headless-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: golden-file-test-redis-headless
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+  annotations:
+    
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+    - name: tcp-sentinel
+      port: 26379
+      targetPort: redis-sentinel
+  selector:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/name: redis
+---
+# Source: redis/templates/metrics-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: golden-file-test-redis-metrics
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+    app.kubernetes.io/component: metrics
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-metrics
+      port: 9121
+      protocol: TCP
+      targetPort: metrics
+  selector:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/name: redis
 ---
 # Source: redis/templates/sentinel/service.yaml
 apiVersion: v1
@@ -754,10 +749,10 @@ spec:
         app.kubernetes.io/component: node
       annotations:
         checksum/configmap: 4900d6077935f6ae81280a33209f7822117133139fc36a7fc1a31c882f10c524
-        checksum/health: 1eace71641fb5bd753e90012419e82c10b1180d694f91d83743b727a5aacca73
-        checksum/scripts: 13c093fc28a3c79b86e8735d31d2c31d3c95709b7838e391ec4a6acbc7cbd3af
+        checksum/health: d626f1cf63e2ea3e4d4206c57ff10b4eba5530de26431ac09f484ae8d13d3196
+        checksum/scripts: 56b854158d3ee62b15594dfc93c0b451bd2f9948f4405e1cbfbb425a275cc6de
         checksum/secret: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
-        cluster-autoscaler.kubernetes.io/safe-to-evict-local-volumes: sentinel-data,empty-dir,redis-data
+        cluster-autoscaler.kubernetes.io/safe-to-evict-local-volumes: sentinel-data,redis-tmp-conf,tmp,redis-data
         prometheus.io/port: "9121"
         prometheus.io/scrape: "true"
     spec:
@@ -874,8 +869,8 @@ spec:
               mountPath: /opt/bitnami/scripts/start-scripts
             - name: health
               mountPath: /health
-            - name: redis-password
-              mountPath: /opt/bitnami/redis/secrets/
+            - name: sentinel-data
+              mountPath: /opt/bitnami/redis-sentinel/etc
             - name: redis-data
               mountPath: /data
             - name: config
@@ -967,8 +962,6 @@ spec:
               mountPath: /health
             - name: sentinel-data
               mountPath: /opt/bitnami/redis-sentinel/etc
-            - name: redis-password
-              mountPath: /opt/bitnami/redis/secrets/
             - name: redis-data
               mountPath: /data
             - name: config
@@ -990,11 +983,8 @@ spec:
               type: RuntimeDefault
           command:
             - /bin/bash
-            - -c
+            - -ec
             - |
-              if [[ -f '/secrets/redis-password' ]]; then
-                  export REDIS_PASSWORD=$(cat /secrets/redis-password)
-              fi
               redis_exporter
           env:
             - name: REDIS_ALIAS
@@ -1024,8 +1014,6 @@ spec:
               cpu: 50m
               memory: 16Mi
           volumeMounts:
-            - name: redis-password
-              mountPath: /secrets/
       volumes:
         - name: start-scripts
           configMap:
@@ -1035,12 +1023,6 @@ spec:
           configMap:
             name: golden-file-test-redis-health
             defaultMode: 0755
-        - name: redis-password
-          secret:
-            secretName: golden-file-test-redis
-            items:
-            - key: redis-password
-              path: redis-password
         - name: config
           configMap:
             name: golden-file-test-redis-configuration

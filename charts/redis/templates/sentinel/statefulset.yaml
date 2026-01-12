@@ -4,7 +4,7 @@ apiVersion: {{ include "common.capabilities.statefulset.apiVersion" . }}
 kind: StatefulSet
 metadata:
   name: {{ printf "%s-node" (include "common.names.fullname" .) }}
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
     app.kubernetes.io/component: node
   {{- if or .Values.commonAnnotations .Values.sentinel.annotations }}
@@ -13,6 +13,7 @@ metadata:
   {{- end }}
 spec:
   replicas: {{ .Values.replica.replicaCount }}
+  revisionHistoryLimit: {{ .Values.replica.revisionHistoryLimit }}
   {{- $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.replica.podLabels .Values.commonLabels ) "context" . ) }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
@@ -99,6 +100,7 @@ spec:
           {{- if .Values.replica.lifecycleHooks }}
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.replica.lifecycleHooks "context" $) | nindent 12 }}
           {{- else }}
+          {{- if .Values.image.bitnami }}
           lifecycle:
             preStop:
               exec:
@@ -106,6 +108,15 @@ spec:
                   - /bin/bash
                   - -c
                   - /opt/bitnami/scripts/start-scripts/prestop-redis.sh
+          {{- else }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - /etc/redis_scripts/start-scripts/prestop-redis.sh
+          {{- end }}
           {{- end }}
           {{- end }}
           {{- if .Values.replica.containerSecurityContext.enabled }}
@@ -125,22 +136,36 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" .Values.replica.args "context" $) | nindent 12 }}
           {{- else }}
           args:
+          {{- if .Values.image.bitnami }}
             - -c
             - /opt/bitnami/scripts/start-scripts/start-node.sh
+          {{- else }}
+            - -c
+            - /etc/redis_scripts/start-scripts/start-node.sh
+          {{- end }}
           {{- end }}
           env:
+            {{- if .Values.image.bitnami }}
             - name: BITNAMI_DEBUG
               value: {{ ternary "true" "false" (or .Values.image.debug .Values.diagnosticMode.enabled) | quote }}
+            {{- end }}
             - name: REDIS_MASTER_PORT_NUMBER
               value: {{ .Values.replica.containerPorts.redis | quote }}
             - name: ALLOW_EMPTY_PASSWORD
               value: {{ ternary "no" "yes" .Values.auth.enabled | quote }}
             {{- if .Values.auth.enabled }}
             {{- if .Values.auth.usePasswordFiles }}
+            {{- if .Values.image.bitnami }}
             - name: REDIS_PASSWORD_FILE
               value: "/opt/bitnami/redis/secrets/redis-password"
             - name: REDIS_MASTER_PASSWORD_FILE
               value: "/opt/bitnami/redis/secrets/redis-password"
+            {{ else }}
+            - name: REDIS_PASSWORD_FILE
+              value: "/etc/redis/secrets/redis-password"
+            - name: REDIS_MASTER_PASSWORD_FILE
+              value: "/etc/redis/secrets/redis-password"
+            {{- end }}
             {{- else }}
             - name: REDIS_PASSWORD
               valueFrom:
@@ -267,17 +292,31 @@ spec:
           resources: {{- toYaml .Values.replica.resources | nindent 12 }}
           {{- end }}
           volumeMounts:
+            {{- if .Values.image.bitnami }}
             - name: start-scripts
               mountPath: /opt/bitnami/scripts/start-scripts
+            {{- else }}
+            - name: redis-scripts
+              mountPath: /etc/redis_scripts
+              readOnly: true
+            {{- end }}
             - name: health
               mountPath: /health
-            {{- if .Values.sentinel.persistence.enabled }}
+            {{- if .Values.image.bitnami }}
             - name: sentinel-data
               mountPath: /opt/bitnami/redis-sentinel/etc
+            {{- else }}
+            - name: sentinel-data
+              mountPath: /etc/redis-sentinel
             {{- end }}
-            {{- if .Values.auth.usePasswordFiles }}
+            {{- if and .Values.auth.enabled .Values.auth.usePasswordFiles }}
+              {{- if .Values.image.bitnami }}
             - name: redis-password
               mountPath: /opt/bitnami/redis/secrets/
+              {{- else }}
+            - name: redis-password
+              mountPath: /etc/redis/secrets/
+              {{- end }}
             {{- end }}
             - name: redis-data
               mountPath: {{ .Values.replica.persistence.path }}
@@ -286,16 +325,29 @@ spec:
               {{- else if .Values.replica.persistence.subPathExpr }}
               subPathExpr: {{ .Values.replica.persistence.subPathExpr }}
               {{- end }}
+            {{- if .Values.image.bitnami }}
             - name: config
               mountPath: /opt/bitnami/redis/mounted-etc
             - name: redis-tmp-conf
               mountPath: /opt/bitnami/redis/etc
+              {{- else }}
+            - name: config
+              mountPath: /etc/mounted/redis
+            - name: redis-tmp-conf
+              mountPath: /etc/redis
+              {{- end }}
             - name: tmp
               mountPath: /tmp
             {{- if .Values.tls.enabled }}
+            {{ if .Values.image.bitnami }}
             - name: redis-certificates
               mountPath: /opt/bitnami/redis/certs
               readOnly: true
+            {{ else }}
+            - name: redis-certificates
+              mountPath: /opt/certs
+              readOnly: true
+            {{- end }}
             {{- end }}
             {{- if .Values.replica.extraVolumeMounts }}
             {{- include "common.tplvalues.render" ( dict "value" .Values.replica.extraVolumeMounts "context" $ ) | nindent 12 }}
@@ -307,6 +359,7 @@ spec:
           {{- if .Values.sentinel.lifecycleHooks }}
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.sentinel.lifecycleHooks "context" $) | nindent 12 }}
           {{- else }}
+          {{- if .Values.image.bitnami }}
           lifecycle:
             preStop:
               exec:
@@ -314,6 +367,15 @@ spec:
                   - /bin/bash
                   - -c
                   - /opt/bitnami/scripts/start-scripts/prestop-sentinel.sh
+          {{- else }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - /etc/redis_scripts/start-scripts/prestop-sentinel.sh
+          {{- end }}
           {{- end }}
           {{- end }}
           {{- if .Values.sentinel.containerSecurityContext.enabled }}
@@ -333,16 +395,28 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" .Values.sentinel.args "context" $) | nindent 12 }}
           {{- else }}
           args:
+          {{- if .Values.image.bitnami }}
             - -c
             - /opt/bitnami/scripts/start-scripts/start-sentinel.sh
+          {{- else }}
+            - -c
+            - /etc/redis_scripts/start-scripts/start-sentinel.sh
+          {{- end }}
           {{- end }}
           env:
+            {{- if .Values.image.bitnami }}
             - name: BITNAMI_DEBUG
               value: {{ ternary "true" "false" (or .Values.sentinel.image.debug .Values.diagnosticMode.enabled) | quote }}
+            {{- end }}
             {{- if .Values.auth.enabled }}
             {{- if .Values.auth.usePasswordFiles }}
+              {{- if .Values.image.bitnami }}
             - name: REDIS_PASSWORD_FILE
               value: "/opt/bitnami/redis/secrets/redis-password"
+              {{ else }}
+            - name: REDIS_PASSWORD_FILE
+              value: "/etc/redis/secrets/redis-password"
+              {{- end }}
             {{- else }}
             - name: REDIS_PASSWORD
               valueFrom:
@@ -446,15 +520,30 @@ spec:
           resources: {{- toYaml .Values.sentinel.resources | nindent 12 }}
           {{- end }}
           volumeMounts:
+            {{- if .Values.image.bitnami }}
             - name: start-scripts
               mountPath: /opt/bitnami/scripts/start-scripts
+            {{- else }}
+            - name: sentinel-scripts
+              mountPath: /etc/redis_scripts
+            {{- end }}
             - name: health
               mountPath: /health
+            {{- if .Values.image.bitnami }}
             - name: sentinel-data
               mountPath: /opt/bitnami/redis-sentinel/etc
-            {{- if .Values.auth.usePasswordFiles }}
+            {{- else }}
+            - name: sentinel-data
+              mountPath: /etc/redis-sentinel
+            {{- end }}
+            {{- if and .Values.auth.enabled .Values.auth.usePasswordFiles }}
+            {{- if .Values.image.bitnami }}
             - name: redis-password
               mountPath: /opt/bitnami/redis/secrets/
+            {{- else }}
+            - name: redis-password
+              mountPath: /etc/redis/secrets/
+            {{- end }}
             {{- end }}
             - name: redis-data
               mountPath: {{ .Values.replica.persistence.path }}
@@ -463,12 +552,23 @@ spec:
               {{- else if .Values.replica.persistence.subPathExpr }}
               subPathExpr: {{ .Values.replica.persistence.subPathExpr }}
               {{- end }}
+            {{- if .Values.image.bitnami }}
             - name: config
               mountPath: /opt/bitnami/redis-sentinel/mounted-etc
+            {{- else }}
+            - name: config
+              mountPath: /etc/mounted/redis-sentinel
+            {{- end }}
             {{- if .Values.tls.enabled }}
+            {{- if .Values.image.bitnami }}
             - name: redis-certificates
               mountPath: /opt/bitnami/redis/certs
               readOnly: true
+            {{ else }}
+            - name: redis-certificates
+              mountPath: /opt/certs
+              readOnly: true
+            {{- end }}
             {{- end }}
             {{- if .Values.sentinel.extraVolumeMounts }}
             {{- include "common.tplvalues.render" ( dict "value" .Values.sentinel.extraVolumeMounts "context" $ ) | nindent 12 }}
@@ -485,11 +585,11 @@ spec:
           {{- else }}
           command:
             - /bin/bash
-            - -c
+            - -ec
             - |
-              if [[ -f '/secrets/redis-password' ]]; then
-                  export REDIS_PASSWORD=$(cat /secrets/redis-password)
-              fi
+              {{- if and .Values.auth.enabled .Values.auth.usePasswordFiles }}
+              export REDIS_PASSWORD="$(< $REDIS_PASSWORD_FILE)"
+              {{- end }}
               redis_exporter{{- range $key, $value := .Values.metrics.extraArgs }} --{{ $key }}={{ $value }}{{- end }}
           {{- end }}
           {{- if .Values.diagnosticMode.enabled }}
@@ -501,7 +601,10 @@ spec:
             {{- if .Values.auth.enabled }}
             - name: REDIS_USER
               value: default
-            {{- if (not .Values.auth.usePasswordFiles) }}
+            {{- if .Values.auth.usePasswordFiles }}
+            - name: REDIS_PASSWORD_FILE
+              value: "/secrets/redis-password"
+            {{- else }}
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -555,14 +658,20 @@ spec:
           resources: {{- toYaml .Values.metrics.resources | nindent 12 }}
           {{- end }}
           volumeMounts:
-            {{- if .Values.auth.usePasswordFiles }}
+            {{- if and .Values.auth.enabled .Values.auth.usePasswordFiles }}
             - name: redis-password
               mountPath: /secrets/
             {{- end }}
             {{- if .Values.tls.enabled }}
+            {{ if .Values.image.bitnami }}
             - name: redis-certificates
               mountPath: /opt/bitnami/redis/certs
               readOnly: true
+            {{ else }}
+            - name: redis-certificates
+              mountPath: /opt/certs
+              readOnly: true
+            {{- end }}
             {{- end }}
             {{- if .Values.metrics.extraVolumeMounts }}
             {{- include "common.tplvalues.render" ( dict "value" .Values.metrics.extraVolumeMounts "context" $ ) | nindent 12 }}
@@ -628,21 +737,116 @@ spec:
         {{- end }}
       {{- end }}
       volumes:
+        {{- if .Values.image.bitnami }}
         - name: start-scripts
           configMap:
             name: {{ printf "%s-scripts" (include "common.names.fullname" .) }}
             defaultMode: 0755
+        {{- else }}
+        - name: redis-scripts
+          projected:
+            defaultMode: 0755
+            sources:
+            - configMap:
+                name: {{ printf "%s-lib-redis-scripts" (include "common.names.fullname" .) }}
+                items:
+                  - key: libfile.sh
+                    path: libfile.sh
+                  - key: libfs.sh
+                    path: libfs.sh
+                  - key: libhook.sh
+                    path: libhook.sh
+                  - key: liblog.sh
+                    path: liblog.sh
+                  - key: libnet.sh
+                    path: libnet.sh
+                  - key: libos.sh
+                    path: libos.sh
+                  - key: libredis.sh
+                    path: libredis.sh
+                  - key: libservice.sh
+                    path: libservice.sh
+                  - key: libvalidations.sh
+                    path: libvalidations.sh
+                  - key: libversion.sh
+                    path: libversion.sh
+                  - key: redis-env.sh
+                    path: redis-env.sh
+                  - key: entrypoint.sh
+                    path: redis/entrypoint.sh
+                  - key: postunpack.sh
+                    path: redis/postunpack.sh
+                  - key: run.sh
+                    path: redis/run.sh
+                  - key: setup.sh
+                    path: redis/setup.sh
+            - configMap:
+                name: {{ printf "%s-scripts" (include "common.names.fullname" .) }}
+                items:
+                  - key: start-node.sh
+                    path: start-scripts/start-node.sh
+                  - key: prestop-redis.sh
+                    path: start-scripts/prestop-redis.sh
+        - name: sentinel-scripts
+          projected:
+            defaultMode: 0755
+            sources:
+            - configMap:
+                name: {{ printf "%s-lib-sentinel-scripts" (include "common.names.fullname" .) }}
+                items:
+                  - key: libfile.sh
+                    path: libfile.sh
+                  - key: libfs.sh
+                    path: libfs.sh
+                  - key: libhook.sh
+                    path: libhook.sh
+                  - key: liblog.sh
+                    path: liblog.sh
+                  - key: libnet.sh
+                    path: libnet.sh
+                  - key: libos.sh
+                    path: libos.sh
+                  - key: libredissentinel.sh
+                    path: libredissentinel.sh
+                  - key: libservice.sh
+                    path: libservice.sh
+                  - key: libvalidations.sh
+                    path: libvalidations.sh
+                  - key: libversion.sh
+                    path: libversion.sh
+                  - key: redis-sentinel-env.sh
+                    path: redis-sentinel-env.sh
+                  - key: entrypoint.sh
+                    path: redis-sentinel/entrypoint.sh
+                  - key: postunpack.sh
+                    path: redis-sentinel/postunpack.sh
+                  - key: run.sh
+                    path: redis-sentinel/run.sh
+                  - key: setup.sh
+                    path: redis-sentinel/setup.sh
+            - configMap:
+                name: {{ printf "%s-scripts" (include "common.names.fullname" .) }}
+                items:
+                  - key: start-sentinel.sh
+                    path: start-scripts/start-sentinel.sh
+                  - key: prestop-sentinel.sh
+                    path: start-scripts/prestop-sentinel.sh
+        {{- end }}
         - name: health
           configMap:
             name: {{ printf "%s-health" (include "common.names.fullname" .) }}
             defaultMode: 0755
-        {{- if .Values.auth.usePasswordFiles }}
+        {{- if and .Values.auth.enabled .Values.auth.usePasswordFiles }}
         - name: redis-password
+          {{ if .Values.auth.usePasswordFileFromSecret }}
           secret:
             secretName: {{ template "redis.secretName" . }}
             items:
             - key: {{ template "redis.secretPasswordKey" . }}
               path: redis-password
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
         {{- end }}
         - name: config
           configMap:

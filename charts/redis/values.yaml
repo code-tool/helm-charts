@@ -112,6 +112,7 @@ diagnosticMode:
 ## @param image.debug Enable image debug mode
 ##
 image:
+  bitnami: true
   registry: docker.io
   repository: bitnami/redis
   tag: 8.2.1-debian-12-r0
@@ -1131,6 +1132,26 @@ replica:
     ## @param replica.autoscaling.targetMemory Percentage of Memory to consider when autoscaling
     ##
     targetMemory: ""
+    ## HPA behavior customization, example:
+    # behavior:
+    #   scaleUp:
+    #     stabilizationWindowSeconds: 0
+    #     policies:
+    #     - type: Percent
+    #       value: 100
+    #       periodSeconds: 15
+    #     - type: Pods
+    #       value: 4
+    #       periodSeconds: 15
+    #     selectPolicy: Max
+    #   scaleDown:
+    #     stabilizationWindowSeconds: 480
+    #     policies:
+    #     - type: Percent
+    #       value: 100
+    #       periodSeconds: 15
+    behavior: {}
+
   ## ServiceAccount configuration
   ##
   serviceAccount:
@@ -1637,7 +1658,7 @@ networkPolicy:
   allowExternal: true
   ## @param networkPolicy.allowExternalEgress Allow the pod to access any range of port and all destinations.
   ##
-  allowExternalEgress: true
+  allowExternalEgress: false
   ## @param networkPolicy.extraIngress Add extra ingress rules to the NetworkPolicy
   ## e.g:
   ## extraIngress:

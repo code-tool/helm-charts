@@ -89,10 +89,18 @@ Return the secret containing Redis TLS certificates
 Return the path to the cert file.
 */}}
 {{- define "redis.tlsCert" -}}
-{{- if (include "redis.createTlsSecret" . ) -}}
-    {{- printf "/opt/bitnami/redis/certs/%s" "tls.crt" -}}
+{{- if .Values.image.bitnami -}}
+    {{- if (include "redis.createTlsSecret" . ) -}}
+        {{- printf "/opt/bitnami/redis/certs/%s" "tls.crt" -}}
+    {{- else -}}
+        {{- required "Certificate filename is required when TLS in enabled" .Values.tls.certFilename | printf "/opt/bitnami/redis/certs/%s" -}}
+    {{- end -}}
 {{- else -}}
-    {{- required "Certificate filename is required when TLS in enabled" .Values.tls.certFilename | printf "/opt/bitnami/redis/certs/%s" -}}
+    {{- if (include "redis.createTlsSecret" . ) -}}
+        {{- printf "/opt/certs/%s" "tls.crt" -}}
+    {{- else -}}
+        {{- required "Certificate filename is required when TLS in enabled" .Values.tls.certFilename | printf "/opt/certs/%s" -}}
+    {{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -100,10 +108,18 @@ Return the path to the cert file.
 Return the path to the cert key file.
 */}}
 {{- define "redis.tlsCertKey" -}}
-{{- if (include "redis.createTlsSecret" . ) -}}
-    {{- printf "/opt/bitnami/redis/certs/%s" "tls.key" -}}
+{{- if .Values.image.bitnami -}}
+    {{- if (include "redis.createTlsSecret" . ) -}}
+        {{- printf "/opt/bitnami/redis/certs/%s" "tls.key" -}}
+    {{- else -}}
+        {{- required "Certificate Key filename is required when TLS in enabled" .Values.tls.certKeyFilename | printf "/opt/bitnami/redis/certs/%s" -}}
+    {{- end -}}
 {{- else -}}
-    {{- required "Certificate Key filename is required when TLS in enabled" .Values.tls.certKeyFilename | printf "/opt/bitnami/redis/certs/%s" -}}
+    {{- if (include "redis.createTlsSecret" . ) -}}
+        {{- printf "/opt/certs/%s" "tls.key" -}}
+    {{- else -}}
+        {{- required "Certificate Key filename is required when TLS in enabled" .Values.tls.certKeyFilename | printf "/opt/certs/%s" -}}
+    {{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -111,10 +127,18 @@ Return the path to the cert key file.
 Return the path to the CA cert file.
 */}}
 {{- define "redis.tlsCACert" -}}
-{{- if (include "redis.createTlsSecret" . ) -}}
-    {{- printf "/opt/bitnami/redis/certs/%s" "ca.crt" -}}
+{{- if .Values.image.bitnami -}}
+    {{- if (include "redis.createTlsSecret" . ) -}}
+        {{- printf "/opt/bitnami/redis/certs/%s" "ca.crt" -}}
+    {{- else -}}
+        {{- required "Certificate CA filename is required when TLS in enabled" .Values.tls.certCAFilename | printf "/opt/bitnami/redis/certs/%s" -}}
+    {{- end -}}
 {{- else -}}
-    {{- required "Certificate CA filename is required when TLS in enabled" .Values.tls.certCAFilename | printf "/opt/bitnami/redis/certs/%s" -}}
+    {{- if (include "redis.createTlsSecret" . ) -}}
+        {{- printf "/opt/certs/%s" "ca.crt" -}}
+    {{- else -}}
+        {{- required "Certificate CA filename is required when TLS in enabled" .Values.tls.certCAFilename | printf "/opt/certs/%s" -}}
+    {{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -123,7 +147,11 @@ Return the path to the DH params file.
 */}}
 {{- define "redis.tlsDHParams" -}}
 {{- if .Values.tls.dhParamsFilename -}}
-{{- printf "/opt/bitnami/redis/certs/%s" .Values.tls.dhParamsFilename -}}
+    {{- if .Values.image.bitnami -}}
+        {{- printf "/opt/bitnami/redis/certs/%s" .Values.tls.dhParamsFilename -}}
+    {{- else -}}
+        {{- printf "/opt/certs/%s" .Values.tls.dhParamsFilename -}}
+    {{- end -}}
 {{- end -}}
 {{- end -}}
 

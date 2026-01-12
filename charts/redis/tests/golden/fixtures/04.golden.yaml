@@ -1,4 +1,67 @@
 ---
+# Source: redis/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: golden-file-test-redis
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: golden-file-test
+      app.kubernetes.io/name: redis
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow inbound connections
+    - ports:
+        - port: 6379
+        - port: 26379
+    # Allow prometheus scrapes for metrics
+    - ports:
+        - port: 9121
+---
+# Source: redis/templates/sentinel/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: golden-file-test-redis-node
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+    app.kubernetes.io/component: node
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: golden-file-test
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: node
+---
+# Source: redis/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: false
+metadata:
+  name: golden-file-test-redis
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+---
 # Source: redis/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -10,18 +73,11 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: redis
     app.kubernetes.io/version: 7.2.1
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
 data:
   redis.conf: |-
     # User-supplied common configuration:
-    # Enable AOF https://redis.io/topics/persistence#append-only-file
     appendonly no
-    # Disable RDB persistence, AOF persistence already enabled.
     save ""
-    maxmemory-policy volatile-lru
-    maxmemory 1Gi
-    databases 48
     # End of common configuration
   master.conf: |-
     dir /data
@@ -45,35 +101,6 @@ data:
     # User-supplied sentinel configuration:
     # End of sentinel configuration
 ---
-# Source: redis/templates/headless-svc.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: golden-file-test-redis-headless
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
-    
-spec:
-  type: ClusterIP
-  clusterIP: None
-  publishNotReadyAddresses: true
-  ports:
-    - name: tcp-redis
-      port: 6379
-      targetPort: redis
-    - name: tcp-sentinel
-      port: 26379
-      targetPort: redis-sentinel
-  selector:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/name: redis
----
 # Source: redis/templates/health-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -85,8 +112,6 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: redis
     app.kubernetes.io/version: 7.2.1
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
 data:
   ping_readiness_local.sh: |-
     #!/bin/bash
@@ -215,138 +240,6 @@ data:
     "$script_dir/ping_liveness_master.sh" $1 || exit_status=$?
     exit $exit_status
 ---
-# Source: redis/templates/serviceaccount.yaml
-apiVersion: v1
-kind: ServiceAccount
-automountServiceAccountToken: false
-metadata:
-  name: golden-file-test-redis
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
----
-# Source: redis/templates/metrics-svc.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: golden-file-test-redis-metrics
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
-    app.kubernetes.io/component: metrics
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
-spec:
-  type: ClusterIP
-  ports:
-    - name: http-metrics
-      port: 9121
-      protocol: TCP
-      targetPort: metrics
-  selector:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/name: redis
----
-# Source: redis/templates/networkpolicy.yaml
-kind: NetworkPolicy
-apiVersion: networking.k8s.io/v1
-metadata:
-  name: golden-file-test-redis
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/instance: golden-file-test
-      app.kubernetes.io/name: redis
-  policyTypes:
-    - Ingress
-    - Egress
-  egress:
-    # Allow dns resolution
-    - ports:
-        - port: 53
-          protocol: UDP
-    # Allow outbound connections to other cluster pods
-    - ports:
-        - port: 6379
-        - port: 26379
-      to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/instance: golden-file-test
-              app.kubernetes.io/name: redis
-  ingress:
-    # Allow inbound connections
-    - ports:
-        - port: 6379
-        - port: 26379
-    # Allow prometheus scrapes for metrics
-    - ports:
-        - port: 9121
----
-# Source: redis/templates/prometheusrule.yaml
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: golden-file-test-redis
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
-spec:
-  groups:
-    - name: golden-file-test-redis
-      rules:
-        - alert: RedisDown
-          annotations:
-            description: Redis instance down
-            summary: Redis instance down
-          expr: redis_up{service="redis-metrics"} == 0
-          for: 5m
-          labels:
-            severity: error
----
-# Source: redis/templates/sentinel/pdb.yaml
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: golden-file-test-redis-node
-  namespace: "test-namespace"
-  labels:
-    app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: redis
-    app.kubernetes.io/version: 7.2.1
-    app.kubernetes.io/component: node
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
-spec:
-  maxUnavailable: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/instance: golden-file-test
-      app.kubernetes.io/name: redis
-      app.kubernetes.io/component: node
----
 # Source: redis/templates/scripts-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -358,15 +251,13 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: redis
     app.kubernetes.io/version: 7.2.1
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
 data:
   start-node.sh: |
     #!/bin/bash
     
-    . /opt/bitnami/scripts/libos.sh
-    . /opt/bitnami/scripts/liblog.sh
-    . /opt/bitnami/scripts/libvalidations.sh
+    . /etc/redis_scripts/libos.sh
+    . /etc/redis_scripts/liblog.sh
+    . /etc/redis_scripts/libvalidations.sh
 
     get_port() {
         hostname="$1"
@@ -446,14 +337,6 @@ data:
     master_port_in_persisted_conf="$REDIS_MASTER_PORT_NUMBER"
     master_in_sentinel="$(get_sentinel_master_info)"
     redisRetVal=$?
-    
-    if [[ -f /opt/bitnami/redis-sentinel/etc/sentinel.conf ]]; then
-        master_in_persisted_conf="$(awk '/monitor/ {print $4}' /opt/bitnami/redis-sentinel/etc/sentinel.conf)"
-        master_port_in_persisted_conf="$(awk '/monitor/ {print $5}' /opt/bitnami/redis-sentinel/etc/sentinel.conf)"
-        info "Found previous master ${master_in_persisted_conf}:${master_port_in_persisted_conf} in /opt/bitnami/redis-sentinel/etc/sentinel.conf"
-        debug "$(cat /opt/bitnami/redis-sentinel/etc/sentinel.conf | grep monitor)"
-        touch /opt/bitnami/redis-sentinel/etc/.node_read
-    fi
 
     if [[ $redisRetVal -ne 0 ]]; then
         if [[ "$master_in_persisted_conf" == "$(get_full_hostname "$HOSTNAME")" ]]; then
@@ -490,17 +373,17 @@ data:
       REDIS_MASTER_PORT_NUMBER="${REDIS_EXTERNAL_MASTER_PORT}"
     fi
     
-    if [[ -f /opt/bitnami/redis/mounted-etc/replica.conf ]];then
-        cp /opt/bitnami/redis/mounted-etc/replica.conf /opt/bitnami/redis/etc/replica.conf
+    if [[ -f /etc/mounted/redis/replica.conf ]];then
+        cp /etc/mounted/redis/replica.conf /etc/redis/replica.conf
     fi
 
-    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
-        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    if [[ -f /etc/mounted/redis/redis.conf ]];then
+        cp /etc/mounted/redis/redis.conf /etc/redis/redis.conf
     fi
 
-    echo "" >> /opt/bitnami/redis/etc/replica.conf
-    echo "replica-announce-port $REDISPORT" >> /opt/bitnami/redis/etc/replica.conf
-    echo "replica-announce-ip $(get_full_hostname "$HOSTNAME")" >> /opt/bitnami/redis/etc/replica.conf
+    echo "" >> /etc/redis/replica.conf
+    echo "replica-announce-port $REDISPORT" >> /etc/redis/replica.conf
+    echo "replica-announce-ip $(get_full_hostname "$HOSTNAME")" >> /etc/redis/replica.conf
     
     ARGS=("--port" "${REDIS_PORT}")
 
@@ -508,16 +391,28 @@ data:
         ARGS+=("--replicaof" "${REDIS_MASTER_HOST}" "${REDIS_MASTER_PORT_NUMBER}")
     fi
     ARGS+=("--protected-mode" "no")
-    ARGS+=("--include" "/opt/bitnami/redis/etc/replica.conf")
-    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/etc/redis/replica.conf")
+    ARGS+=("--include" "/etc/redis/redis.conf")
+    
+    modules_dir="/usr/local/lib/redis/modules"
+    if [[ -d "$modules_dir" ]]; then
+    for module in "$modules_dir"/*.so; do
+        [[ -d "$module" ]] && { echo "Skipping module $module: is a directory."; continue; }
+        [[ -s "$module" ]] || { echo "Skipping $module: module has no size"; continue; }
+        [[ -r "$module" ]] || { echo "Skipping $module: not readable"; continue; }
+        [[ -x "$module" ]] || { echo "Warning: Skipping $module: not executable"; }
+        ARGS+=("--loadmodule" "$module")
+    done
+    fi
     exec redis-server "${ARGS[@]}"
 
   start-sentinel.sh: |
     #!/bin/bash
     
-    . /opt/bitnami/scripts/libos.sh
-    . /opt/bitnami/scripts/libvalidations.sh
-    . /opt/bitnami/scripts/libfile.sh
+    . /etc/redis_scripts/libos.sh
+    . /etc/redis_scripts/libvalidations.sh
+    . /etc/redis_scripts/libfile.sh
+    
 
     HEADLESS_SERVICE="golden-file-test-redis-headless.test-namespace.svc.cluster.local"
     REDIS_SERVICE="golden-file-test-redis.test-namespace.svc.cluster.local"
@@ -563,13 +458,13 @@ data:
         value="${value//\?/\\?}"
         [[ "$value" = "" ]] && value="\"$value\""
         
-        replace_in_file "/opt/bitnami/redis-sentinel/etc/sentinel.conf" "^#*\s*${key} .*" "${key} ${value}" false
+        replace_in_file "/etc/redis-sentinel/sentinel.conf" "^#*\s*${key} .*" "${key} ${value}" false
     }
     sentinel_conf_add() {
-        echo $'\n'"$@" >> "/opt/bitnami/redis-sentinel/etc/sentinel.conf"
+        echo $'\n'"$@" >> "/etc/redis-sentinel/sentinel.conf"
     }
     host_id() {
-        echo "$1" | openssl sha1 | awk '{print $2}'
+        printf '%s\n' "$1" | sha1sum | awk '{print $1}'
     }
     get_sentinel_master_info() {
         if is_boolean_yes "$REDIS_SENTINEL_TLS_ENABLED"; then
@@ -584,18 +479,6 @@ data:
     [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
 
     master_in_persisted_conf="$(get_full_hostname "$HOSTNAME")"
-    
-    if [[ -f /opt/bitnami/redis-sentinel/etc/sentinel.conf ]]; then
-        check_lock_file() {
-            [[ -f /opt/bitnami/redis-sentinel/etc/.node_read ]]
-        }
-        retry_while "check_lock_file"
-        rm -f /opt/bitnami/redis-sentinel/etc/.node_read
-        master_in_persisted_conf="$(awk '/monitor/ {print $4}' /opt/bitnami/redis-sentinel/etc/sentinel.conf)"
-        info "Found previous master $master_in_persisted_conf in /opt/bitnami/redis-sentinel/etc/sentinel.conf"
-        debug "$(cat /opt/bitnami/redis-sentinel/etc/sentinel.conf | grep monitor)"
-    fi
-    
     if ! get_sentinel_master_info && [[ "$master_in_persisted_conf" == "$(get_full_hostname "$HOSTNAME")" ]]; then
         # No master found, lets create a master node
         export REDIS_REPLICATION_MODE="master"
@@ -617,10 +500,9 @@ data:
       REDIS_MASTER_PORT_NUMBER="${REDIS_EXTERNAL_MASTER_PORT}"
     fi
     
-    cp /opt/bitnami/redis-sentinel/mounted-etc/sentinel.conf /opt/bitnami/redis-sentinel/etc/sentinel.conf
+    cp /etc/mounted/redis-sentinel/sentinel.conf /etc/redis-sentinel/sentinel.conf
     
-    printf "\nsentinel myid %s" "$(host_id "$HOSTNAME")" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
-    
+    printf "\nsentinel myid %s" "$(host_id "$HOSTNAME")" >> /etc/redis-sentinel/sentinel.conf
 
     if [[ -z "$REDIS_MASTER_HOST" ]] || [[ -z "$REDIS_MASTER_PORT_NUMBER" ]]
     then
@@ -649,26 +531,24 @@ data:
     }
 
     # Add available hosts on the network as known replicas & sentinels
-    for node in $(seq 0 $((2-1))); do
+    for node in $(seq 0 $((3-1))); do
         hostname="golden-file-test-redis-node-$node"
         ip="$(getent hosts "$hostname.$HEADLESS_SERVICE" | awk '{ print $1 }')"
         add_known_sentinel "$hostname" "$ip"
         add_known_replica "$hostname" "$ip"
     done
+    echo "" >> /etc/redis-sentinel/sentinel.conf
+    echo "sentinel announce-hostnames yes" >> /etc/redis-sentinel/sentinel.conf
+    echo "sentinel resolve-hostnames yes" >> /etc/redis-sentinel/sentinel.conf
+    echo "sentinel announce-port $SERVPORT" >> /etc/redis-sentinel/sentinel.conf
+    echo "sentinel announce-ip $(get_full_hostname "$HOSTNAME")" >> /etc/redis-sentinel/sentinel.conf
     
-    echo "" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
-    echo "sentinel announce-hostnames yes" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
-    echo "sentinel resolve-hostnames yes" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
-    echo "sentinel announce-port $SERVPORT" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
-    echo "sentinel announce-ip $(get_full_hostname "$HOSTNAME")" >> /opt/bitnami/redis-sentinel/etc/sentinel.conf
-    
-    exec redis-server /opt/bitnami/redis-sentinel/etc/sentinel.conf --sentinel
+    exec redis-server /etc/redis-sentinel/sentinel.conf --sentinel
   prestop-sentinel.sh: |
     #!/bin/bash
     
-    . /opt/bitnami/scripts/libvalidations.sh
-    . /opt/bitnami/scripts/libos.sh
-    
+    . /etc/redis_scripts/libvalidations.sh
+    . /etc/redis_scripts/libos.sh
     HEADLESS_SERVICE="golden-file-test-redis-headless.test-namespace.svc.cluster.local"
 
     get_full_hostname() {
@@ -709,9 +589,8 @@ data:
   prestop-redis.sh: |
     #!/bin/bash
     
-    . /opt/bitnami/scripts/libvalidations.sh
-    . /opt/bitnami/scripts/libos.sh
-    
+    . /etc/redis_scripts/libvalidations.sh
+    . /etc/redis_scripts/libos.sh
     run_redis_command() {
         if is_boolean_yes "$REDIS_TLS_ENABLED"; then
             redis-cli -h 127.0.0.1 -p "$REDIS_TLS_PORT" --tls --cert "$REDIS_TLS_CERT_FILE" --key "$REDIS_TLS_KEY_FILE" --cacert "$REDIS_TLS_CA_FILE" "$@"
@@ -766,6 +645,57 @@ data:
         exit 0
     fi
 ---
+# Source: redis/templates/headless-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: golden-file-test-redis-headless
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+  annotations:
+    
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+    - name: tcp-sentinel
+      port: 26379
+      targetPort: redis-sentinel
+  selector:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/name: redis
+---
+# Source: redis/templates/metrics-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: golden-file-test-redis-metrics
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+    app.kubernetes.io/component: metrics
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-metrics
+      port: 9121
+      protocol: TCP
+      targetPort: metrics
+  selector:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/name: redis
+---
 # Source: redis/templates/sentinel/service.yaml
 apiVersion: v1
 kind: Service
@@ -778,8 +708,6 @@ metadata:
     app.kubernetes.io/name: redis
     app.kubernetes.io/version: 7.2.1
     app.kubernetes.io/component: node
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
 spec:
   type: ClusterIP
   sessionAffinity: None
@@ -809,10 +737,9 @@ metadata:
     app.kubernetes.io/name: redis
     app.kubernetes.io/version: 7.2.1
     app.kubernetes.io/component: node
-  annotations:
-    argocd.argoproj.io/sync-wave: "-5"
 spec:
-  replicas: 2
+  replicas: 3
+  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app.kubernetes.io/instance: golden-file-test
@@ -830,10 +757,11 @@ spec:
         app.kubernetes.io/version: 7.2.1
         app.kubernetes.io/component: node
       annotations:
-        checksum/configmap: f24dfec7661e4e05347972c52af19022bea9eba122fe0300c5e5cffda3bd421a
+        checksum/configmap: 4900d6077935f6ae81280a33209f7822117133139fc36a7fc1a31c882f10c524
         checksum/health: d626f1cf63e2ea3e4d4206c57ff10b4eba5530de26431ac09f484ae8d13d3196
-        checksum/scripts: 4df1ac7ddb47cb9d538c1ca2299d7d30b42db440c67bdbe59530be7725d0a703
+        checksum/scripts: 410b9b18716177690af4b42daee6407fbdba2fc90f9eef28c62f6080ac6a2737
         checksum/secret: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        cluster-autoscaler.kubernetes.io/safe-to-evict-local-volumes: sentinel-data,redis-tmp-conf,tmp,redis-data
         prometheus.io/port: "9121"
         prometheus.io/scrape: "true"
     spec:
@@ -845,34 +773,24 @@ spec:
         sysctls: []
       automountServiceAccountToken: false
       serviceAccountName: golden-file-test-redis
-      priorityClassName: "system-node-critical"
       affinity:
         podAffinity:
           
         podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - podAffinityTerm:
-                labelSelector:
-                  matchLabels:
-                    app.kubernetes.io/instance: golden-file-test
-                    app.kubernetes.io/name: redis
-                    app.kubernetes.io/component: node
-                topologyKey: kubernetes.io/hostname
-              weight: 1
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: golden-file-test
+                  app.kubernetes.io/name: redis
+                  app.kubernetes.io/component: node
+              topologyKey: kubernetes.io/hostname
         nodeAffinity:
           
-      nodeSelector:
-        role: redis
-      tolerations:
-        - effect: NoSchedule
-          key: dedicated
-          operator: Equal
-          value: backend
       enableServiceLinks: true
       terminationGracePeriodSeconds: 30
       containers:
         - name: redis
-          image: docker.io/bitnami/redis:8.2.1-debian-12-r0
+          image: docker.io/library/redis:8.4.0
           imagePullPolicy: "IfNotPresent"
           lifecycle:
             preStop:
@@ -880,7 +798,7 @@ spec:
                 command:
                   - /bin/bash
                   - -c
-                  - /opt/bitnami/scripts/start-scripts/prestop-redis.sh
+                  - /etc/redis_scripts/start-scripts/prestop-redis.sh
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -897,10 +815,8 @@ spec:
             - /bin/bash
           args:
             - -c
-            - /opt/bitnami/scripts/start-scripts/start-node.sh
+            - /etc/redis_scripts/start-scripts/start-node.sh
           env:
-            - name: BITNAMI_DEBUG
-              value: "false"
             - name: REDIS_MASTER_PORT_NUMBER
               value: "6379"
             - name: ALLOW_EMPTY_PASSWORD
@@ -951,23 +867,28 @@ spec:
                 - sh
                 - -c
                 - /health/ping_readiness_local.sh 1
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
           volumeMounts:
-            - name: start-scripts
-              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: redis-scripts
+              mountPath: /etc/redis_scripts
+              readOnly: true
             - name: health
               mountPath: /health
             - name: sentinel-data
-              mountPath: /opt/bitnami/redis-sentinel/etc
+              mountPath: /etc/redis-sentinel
             - name: redis-data
               mountPath: /data
             - name: config
-              mountPath: /opt/bitnami/redis/mounted-etc
+              mountPath: /etc/mounted/redis
             - name: redis-tmp-conf
-              mountPath: /opt/bitnami/redis/etc
+              mountPath: /etc/redis
             - name: tmp
               mountPath: /tmp
         - name: sentinel
-          image: docker.io/bitnami/redis-sentinel:8.2.1-debian-12-r0
+          image: docker.io/library/redis:8.4.0
           imagePullPolicy: "IfNotPresent"
           lifecycle:
             preStop:
@@ -975,7 +896,7 @@ spec:
                 command:
                   - /bin/bash
                   - -c
-                  - /opt/bitnami/scripts/start-scripts/prestop-sentinel.sh
+                  - /etc/redis_scripts/start-scripts/prestop-sentinel.sh
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -992,10 +913,8 @@ spec:
             - /bin/bash
           args:
             - -c
-            - /opt/bitnami/scripts/start-scripts/start-sentinel.sh
+            - /etc/redis_scripts/start-scripts/start-sentinel.sh
           env:
-            - name: BITNAMI_DEBUG
-              value: "false"
             - name: ALLOW_EMPTY_PASSWORD
               value: "yes"
             - name: REDIS_SENTINEL_TLS_ENABLED
@@ -1038,19 +957,23 @@ spec:
                 - sh
                 - -c
                 - /health/ping_sentinel.sh 1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 16Mi
           volumeMounts:
-            - name: start-scripts
-              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: sentinel-scripts
+              mountPath: /etc/redis_scripts
             - name: health
               mountPath: /health
             - name: sentinel-data
-              mountPath: /opt/bitnami/redis-sentinel/etc
+              mountPath: /etc/redis-sentinel
             - name: redis-data
               mountPath: /data
             - name: config
-              mountPath: /opt/bitnami/redis-sentinel/mounted-etc
+              mountPath: /etc/mounted/redis-sentinel
         - name: metrics
-          image: docker.io/bitnami/redis-exporter:1.76.0-debian-12-r0
+          image: docker.io/bitnamilegacy/redis-exporter:1.61.0-debian-12-r2
           imagePullPolicy: "IfNotPresent"
           securityContext:
             allowPrivilegeEscalation: false
@@ -1092,12 +1015,100 @@ spec:
             httpGet:
               path: /
               port: metrics
+          resources:
+            requests:
+              cpu: 50m
+              memory: 16Mi
           volumeMounts:
       volumes:
-        - name: start-scripts
-          configMap:
-            name: golden-file-test-redis-scripts
+        - name: redis-scripts
+          projected:
             defaultMode: 0755
+            sources:
+            - configMap:
+                name: golden-file-test-redis-lib-redis-scripts
+                items:
+                  - key: libfile.sh
+                    path: libfile.sh
+                  - key: libfs.sh
+                    path: libfs.sh
+                  - key: libhook.sh
+                    path: libhook.sh
+                  - key: liblog.sh
+                    path: liblog.sh
+                  - key: libnet.sh
+                    path: libnet.sh
+                  - key: libos.sh
+                    path: libos.sh
+                  - key: libredis.sh
+                    path: libredis.sh
+                  - key: libservice.sh
+                    path: libservice.sh
+                  - key: libvalidations.sh
+                    path: libvalidations.sh
+                  - key: libversion.sh
+                    path: libversion.sh
+                  - key: redis-env.sh
+                    path: redis-env.sh
+                  - key: entrypoint.sh
+                    path: redis/entrypoint.sh
+                  - key: postunpack.sh
+                    path: redis/postunpack.sh
+                  - key: run.sh
+                    path: redis/run.sh
+                  - key: setup.sh
+                    path: redis/setup.sh
+            - configMap:
+                name: golden-file-test-redis-scripts
+                items:
+                  - key: start-node.sh
+                    path: start-scripts/start-node.sh
+                  - key: prestop-redis.sh
+                    path: start-scripts/prestop-redis.sh
+        - name: sentinel-scripts
+          projected:
+            defaultMode: 0755
+            sources:
+            - configMap:
+                name: golden-file-test-redis-lib-sentinel-scripts
+                items:
+                  - key: libfile.sh
+                    path: libfile.sh
+                  - key: libfs.sh
+                    path: libfs.sh
+                  - key: libhook.sh
+                    path: libhook.sh
+                  - key: liblog.sh
+                    path: liblog.sh
+                  - key: libnet.sh
+                    path: libnet.sh
+                  - key: libos.sh
+                    path: libos.sh
+                  - key: libredissentinel.sh
+                    path: libredissentinel.sh
+                  - key: libservice.sh
+                    path: libservice.sh
+                  - key: libvalidations.sh
+                    path: libvalidations.sh
+                  - key: libversion.sh
+                    path: libversion.sh
+                  - key: redis-sentinel-env.sh
+                    path: redis-sentinel-env.sh
+                  - key: entrypoint.sh
+                    path: redis-sentinel/entrypoint.sh
+                  - key: postunpack.sh
+                    path: redis-sentinel/postunpack.sh
+                  - key: run.sh
+                    path: redis-sentinel/run.sh
+                  - key: setup.sh
+                    path: redis-sentinel/setup.sh
+            - configMap:
+                name: golden-file-test-redis-scripts
+                items:
+                  - key: start-sentinel.sh
+                    path: start-scripts/start-sentinel.sh
+                  - key: prestop-sentinel.sh
+                    path: start-scripts/prestop-sentinel.sh
         - name: health
           configMap:
             name: golden-file-test-redis-health
@@ -1105,35 +1116,41 @@ spec:
         - name: config
           configMap:
             name: golden-file-test-redis-configuration
+        - name: sentinel-data
+          emptyDir: {}
         - name: redis-tmp-conf
           emptyDir: {}
         - name: tmp
           emptyDir: {}
-  volumeClaimTemplates:
-    - apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: redis-data
-        labels:
-          app.kubernetes.io/instance: golden-file-test
-          app.kubernetes.io/name: redis
-          app.kubernetes.io/component: node
-      spec:
-        accessModes:
-          - "ReadWriteOnce"
-        resources:
-          requests:
-            storage: "8Gi"
-        
-    - metadata:
-        name: sentinel-data
-        labels:
-          app.kubernetes.io/instance: golden-file-test
-          app.kubernetes.io/name: redis
-          app.kubernetes.io/component: node
-      spec:
-        accessModes:
-          - "ReadWriteOnce"
-        resources:
-          requests:
-            storage: "100Mi"
+        - name: redis-data
+          emptyDir: {}
+---
+# Source: redis/templates/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: golden-file-test-redis
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 7.2.1
+spec:
+  endpoints:
+    - port: http-metrics
+      interval: 10s
+      relabelings:
+      - sourceLabels:
+        - __meta_kubernetes_pod_name
+        targetLabel: instance
+  
+  
+  namespaceSelector:
+    matchNames:
+      - test-namespace
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: golden-file-test
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: metrics

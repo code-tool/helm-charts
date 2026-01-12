@@ -8,9 +8,10 @@ commonConfiguration: |-
   appendonly no
   save ""
 image:
+  bitnami: false
   registry: docker.io
-  repository: bitnamilegacy/redis
-  tag: 7.2.5-debian-12-r0
+  repository: library/redis
+  tag: "8.4.0"
 master:
   count: 1
   persistence:
@@ -47,8 +48,8 @@ sentinel:
   enabled: true
   image:
     registry: docker.io
-    repository: bitnamilegacy/redis-sentinel
-    tag: 7.2.5-debian-12-r2
+    repository: library/redis
+    tag: "8.4.0"
   podAntiAffinityPreset: hard
   resources:
     requests:

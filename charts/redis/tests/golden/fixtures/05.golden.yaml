@@ -215,20 +215,29 @@ data:
 
     [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
     
-    if [[ -f /opt/bitnami/redis/mounted-etc/master.conf ]];then
-        cp /opt/bitnami/redis/mounted-etc/master.conf /opt/bitnami/redis/etc/master.conf
+    if [[ -f /etc/mounted/redis/master.conf ]];then
+        cp /etc/mounted/redis/master.conf /etc/redis/master.conf
     fi
-    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
-        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    if [[ -f /etc/mounted/redis/redis.conf ]];then
+        cp /etc/mounted/redis/redis.conf /etc/redis/redis.conf
     fi
     
     ARGS=("--port" "${REDIS_PORT}")
     ARGS+=("--protected-mode" "no")
     
-    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
-    ARGS+=("--include" "/opt/bitnami/redis/etc/master.conf")
+    ARGS+=("--include" "/etc/redis/redis.conf")
+    ARGS+=("--include" "/etc/redis/master.conf")
     
-    
+    modules_dir="/usr/local/lib/redis/modules"
+    if [[ -d "$modules_dir" ]]; then
+    for module in "$modules_dir"/*.so; do
+        [[ -d "$module" ]] && { echo "Skipping module $module: is a directory."; continue; }
+        [[ -s "$module" ]] || { echo "Skipping $module: module has no size"; continue; }
+        [[ -r "$module" ]] || { echo "Skipping $module: not readable"; continue; }
+        [[ -x "$module" ]] || { echo "Warning: Skipping $module: not executable"; }
+        ARGS+=("--loadmodule" "$module")
+    done
+    fi
     exec redis-server "${ARGS[@]}"
   start-replica.sh: |
     #!/bin/bash
@@ -266,23 +275,21 @@ data:
     [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
     [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
     
-    if [[ -f /opt/bitnami/redis/mounted-etc/replica.conf ]];then
-        cp /opt/bitnami/redis/mounted-etc/replica.conf /opt/bitnami/redis/etc/replica.conf
+    if [[ -f /etc/mounted/redis/replica.conf ]];then
+        cp /etc/mounted/redis/replica.conf /etc/redis/replica.conf
     fi
-    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
-        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    if [[ -f /etc/mounted/redis/redis.conf ]];then
+        cp /etc/mounted/redis/redis.conf /etc/redis/redis.conf
     fi
-
-    echo "" >> /opt/bitnami/redis/etc/replica.conf
-    echo "replica-announce-port $REDISPORT" >> /opt/bitnami/redis/etc/replica.conf
-    echo "replica-announce-ip $(get_full_hostname "$HOSTNAME")" >> /opt/bitnami/redis/etc/replica.conf
+    echo "" >> /etc/redis/replica.conf
+    echo "replica-announce-port $REDISPORT" >> /etc/redis/replica.conf
+    echo "replica-announce-ip $(get_full_hostname "$HOSTNAME")" >> /etc/redis/replica.conf
     
     ARGS=("--port" "${REDIS_PORT}")
     ARGS+=("--replicaof" "${REDIS_MASTER_HOST}" "${REDIS_MASTER_PORT_NUMBER}")
     ARGS+=("--protected-mode" "no")
-    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
-    ARGS+=("--include" "/opt/bitnami/redis/etc/replica.conf")
-    ARGS+=("--loadmodule /opt/redis-stack/lib/redisearch.so")
+    ARGS+=("--include" "/etc/redis/redis.conf")
+    ARGS+=("--include" "/etc/redis/replica.conf")
     ARGS+=("--protected-mode no")
     ARGS+=("--replica-priority 0")
     ARGS+=("--replica-announced no")
@@ -290,6 +297,16 @@ data:
     ARGS+=("--io-threads 2")
     ARGS+=("--repl-diskless-load on-empty-db")
     
+    modules_dir="/usr/local/lib/redis/modules"
+    if [[ -d "$modules_dir" ]]; then
+    for module in "$modules_dir"/*.so; do
+        [[ -d "$module" ]] && { echo "Skipping module $module: is a directory."; continue; }
+        [[ -s "$module" ]] || { echo "Skipping $module: module has no size"; continue; }
+        [[ -r "$module" ]] || { echo "Skipping $module: not readable"; continue; }
+        [[ -x "$module" ]] || { echo "Warning: Skipping $module: not executable"; }
+        ARGS+=("--loadmodule" "$module")
+    done
+    fi
     exec redis-server "${ARGS[@]}"
 ---
 # Source: redis/templates/headless-svc.yaml
@@ -425,7 +442,7 @@ spec:
       annotations:
         checksum/configmap: b80a98d43003b6ba444715c5099f8debc2981ec5c6f2de25b6b3b46c414885c3
         checksum/health: aff24913d801436ea469d8d374b2ddb3ec4c43ee7ab24663d5f8ff1a1b6991a9
-        checksum/scripts: baef656287c55d8fc8802ded06f7d3739d023a463ead7c9d8aa7619924ae53f4
+        checksum/scripts: 56f32286f362d6d637cc032c3d5412604f0c72e6eafb22756b27666e9fd89edd
         checksum/secret: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
         prometheus.io/port: "9121"
         prometheus.io/scrape: "true"
@@ -462,7 +479,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: redis
-          image: docker.io/redis/redis-stack:7.4.0-v3
+          image: docker.io/library/redis:8.4.0
           imagePullPolicy: "IfNotPresent"
           securityContext:
             allowPrivilegeEscalation: false
@@ -480,10 +497,8 @@ spec:
             - /bin/bash
           args:
             - -c
-            - /opt/bitnami/scripts/start-scripts/start-replica.sh
+            - /etc/redis_scripts/start-scripts/start-replica.sh
           env:
-            - name: BITNAMI_DEBUG
-              value: "false"
             - name: REDIS_REPLICATION_MODE
               value: replica
             - name: REDIS_MASTER_HOST
@@ -541,16 +556,16 @@ spec:
               ephemeral-storage: 20Gi
               memory: 6G
           volumeMounts:
-            - name: start-scripts
-              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: redis-scripts
+              mountPath: /etc/redis_scripts
             - name: health
               mountPath: /health
             - name: redis-data
               mountPath: /data
             - name: config
-              mountPath: /opt/bitnami/redis/mounted-etc
+              mountPath: /etc/mounted/redis/
             - name: redis-tmp-conf
-              mountPath: /opt/bitnami/redis/etc
+              mountPath: /etc/redis/
         - name: metrics
           image: docker.io/bitnamilegacy/redis-exporter:1.61.0-debian-12-r2
           imagePullPolicy: "IfNotPresent"
@@ -620,10 +635,48 @@ spec:
             - name: host-sys
               mountPath: /host-sys
       volumes:
-        - name: start-scripts
-          configMap:
-            name: golden-file-test-redis-scripts
+        - name: redis-scripts
+          projected:
             defaultMode: 0755
+            sources:
+            - configMap:
+                name: golden-file-test-redis-lib-redis-scripts
+                items:
+                  - key: libfile.sh
+                    path: libfile.sh
+                  - key: libfs.sh
+                    path: libfs.sh
+                  - key: libhook.sh
+                    path: libhook.sh
+                  - key: liblog.sh
+                    path: liblog.sh
+                  - key: libnet.sh
+                    path: libnet.sh
+                  - key: libos.sh
+                    path: libos.sh
+                  - key: libredis.sh
+                    path: libredis.sh
+                  - key: libservice.sh
+                    path: libservice.sh
+                  - key: libvalidations.sh
+                    path: libvalidations.sh
+                  - key: libversion.sh
+                    path: libversion.sh
+                  - key: redis-env.sh
+                    path: redis-env.sh
+                  - key: entrypoint.sh
+                    path: redis/entrypoint.sh
+                  - key: postunpack.sh
+                    path: redis/postunpack.sh
+                  - key: run.sh
+                    path: redis/run.sh
+                  - key: setup.sh
+                    path: redis/setup.sh
+            - configMap:
+                name: golden-file-test-redis-scripts
+                items:
+                  - key: start-replica.sh
+                    path: start-scripts/start-replica.sh
         - name: health
           configMap:
             name: golden-file-test-redis-health

@@ -3,7 +3,7 @@ apiVersion: {{ include "common.capabilities.hpa.apiVersion" ( dict "context" $ )
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ printf "%s-replicas" (include "common.names.fullname" .) }}
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ include "common.names.namespace" . | quote }}
   labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
     app.kubernetes.io/component: replica
   {{- if .Values.commonAnnotations }}
@@ -41,4 +41,8 @@ spec:
           averageUtilization: {{ .Values.replica.autoscaling.targetMemory }}
         {{- end }}
     {{- end }}
+  {{- if .Values.replica.autoscaling.behavior }}
+  behavior:
+  {{- toYaml .Values.replica.autoscaling.behavior | nindent 4 }}
+  {{- end }}
 {{- end }}
