@@ -24,6 +24,14 @@ spec:
             type: cron
         spec:
           restartPolicy: OnFailure
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           containers:
           - name: cleaner
             image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
