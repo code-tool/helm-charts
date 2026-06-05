@@ -4,3 +4,5 @@ image:
   pullPolicy: IfNotPresent
 cronSchedule: "*/5 * * * *"
 metricUrl: "http://pushgateway-prometheus-pushgateway:9091/metrics"
+nodeSelector: {}
+tolerations: []
