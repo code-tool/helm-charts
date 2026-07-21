@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "authentik-outpost.fullname" . }}
+  labels:
+    {{- include "authentik-outpost.labels" . | nindent 4 }}
+spec:
+  replicas: {{.Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "authentik-outpost.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "authentik-outpost.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: proxy
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{.Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 9000
+              protocol: TCP
+            - name: https
+              containerPort: 9443
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: {{ include "authentik-outpost.fullname" . }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,4 @@
+authentik:
+  host: "https://authentik.test.com"
+  token: "token"
+  insecure: false
