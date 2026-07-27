@@ -12,7 +12,7 @@ image:
   # -- The image pull policy.
   pullPolicy: IfNotPresent
   # -- The container image tag. Overrides the chart's appVersion if set.
-  tag: "2026.2.6"
+  tag: ""
 
 authentik:
   # -- The full external URL of the Authentik core server (e.g., "https://auth.domain1.com").
