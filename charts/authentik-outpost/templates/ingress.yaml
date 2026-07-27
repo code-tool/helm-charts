@@ -2,10 +2,13 @@
 {{- if empty .Values.ingress.whitelistSourceRange }}
 {{- fail "whitelistSourceRange cannot be empty"}}
 {{- end }}
+{{- if empty .Values.ingress.host }}
+{{- fail "ingress.host cannot be empty when ingress is enabled" }}
+{{- end }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: authentik-outpost
+  name: {{ include "common.names.fullname" . }}
   annotations:
     nginx.ingress.kubernetes.io/whitelist-source-range: {{ join "," .Values.ingress.whitelistSourceRange | quote }}
     {{- with .Values.ingress.annotations }}

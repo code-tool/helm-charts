@@ -1,11 +1,25 @@
-# AuthentikOutpost Helm Chart
+# Authentik Outpost Helm Chart
 
-This chart deploys a [AuthentikOutpost](https://docs.goauthentik.io/add-secure-apps/outposts/) instance to your Kubernetes cluster via Helm.
+This chart deploys a [manual Authentik Proxy Outpost](https://docs.goauthentik.io/add-secure-apps/outposts/) to your Kubernetes cluster.
+
+## Prerequisites
+
+- A running [Authentik](https://goauthentik.io) instance
+- An Authentik Outpost token (generated from the Authentik UI under System → Outposts)
+
+## Installation
+
+```bash
+helm repo add code-tool https://code-tool.github.io/helm-charts
+helm repo update
+
+helm install authentik-outpost code-tool/authentik-outpost \
+  --set authentik.host=https://accounts.example.com \
+  --set authentik.token=your-outpost-token
+```
 
 ## Configuration
 
-The following table lists the configurable parameters of the AuthentikOutpost chart and their default values.
+The following table lists the configurable parameters of the chart and their default values.
 
 {{ template "chart.valuesSection" . }}
-
-## Example using ArgoCD

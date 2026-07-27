@@ -7,8 +7,8 @@ metadata:
   labels:
     app.kubernetes.io/name: authentik-outpost
     app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/version: "2026.2.6"
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "2026.2.6"
 spec:
   replicas: 1
   selector:
@@ -35,6 +35,18 @@ spec:
           envFrom:
             - secretRef:
                 name: golden-file-test-authentik-outpost
+          livenessProbe:
+            httpGet:
+              path: /outpost.goauthentik.io/ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /outpost.goauthentik.io/ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
           resources:
             limits:
               cpu: 100m
@@ -51,8 +63,8 @@ metadata:
   labels:
     app.kubernetes.io/name: authentik-outpost
     app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/version: "2026.2.6"
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "2026.2.6"
 type: Opaque
 data:
   AUTHENTIK_HOST: "aHR0cHM6Ly9hdXRoZW50aWsudGVzdC5jb20="
@@ -67,8 +79,8 @@ metadata:
   labels:
     app.kubernetes.io/name: authentik-outpost
     app.kubernetes.io/instance: golden-file-test
-    app.kubernetes.io/version: "2026.2.6"
     app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: "2026.2.6"
 spec:
   type: ClusterIP
   ports:

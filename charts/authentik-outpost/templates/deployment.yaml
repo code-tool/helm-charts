@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "authentik-outpost.fullname" . }}
+  name: {{ include "common.names.fullname" . }}
   labels:
-    {{- include "authentik-outpost.labels" . | nindent 4 }}
+    {{- include "common.labels.standard" . | nindent 4 }}
 spec:
   replicas: {{.Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "authentik-outpost.selectorLabels" . | nindent 6 }}
+      {{- include "common.labels.matchLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "authentik-outpost.selectorLabels" . | nindent 8 }}
+        {{- include "common.labels.matchLabels" . | nindent 8 }}
     spec:
       containers:
         - name: proxy
@@ -27,7 +27,11 @@ spec:
               protocol: TCP
           envFrom:
             - secretRef:
-                name: {{ include "authentik-outpost.fullname" . }}
+                name: {{ .Values.authentik.existingSecretName | default (include "common.names.fullname" .) }}
+          livenessProbe:  
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with.Values.nodeSelector }}
