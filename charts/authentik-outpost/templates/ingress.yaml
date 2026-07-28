@@ -28,7 +28,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: authentik-outpost
+                name: {{ include "common.names.fullname" . }}
                 port:
                   name: http
     {{- range .Values.ingress.extraHosts }}
@@ -39,7 +39,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: authentik-outpost
+                name: {{ include "common.names.fullname" . }}
                 port:
                   name: http
     {{- end }}
