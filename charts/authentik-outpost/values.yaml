@@ -1,0 +1,103 @@
+# -- Override the name of the chart.
+nameOverride: ""
+# -- Override the full name of the release.
+fullnameOverride: ""
+
+# -- Number of outpost pods to deploy.
+replicaCount: 1
+
+image:
+  # -- The container image repository for the Authentik proxy outpost.
+  repository: "ghcr.io/goauthentik/proxy"
+  # -- The image pull policy.
+  pullPolicy: IfNotPresent
+  # -- The container image tag. Overrides the chart's appVersion if set.
+  tag: ""
+
+authentik:
+  # -- The full external URL of the Authentik core server (e.g., "https://auth.domain1.com").
+  # This value is required.
+  host: ""
+  # -- The API token for the outpost, generated from the Authentik UI.
+  # This value is required.
+  token: ""
+  # -- If true, disables TLS certificate verification for the connection to Authentik.
+  # Should only be used for testing or with self-signed certificates.
+  insecure: false
+  # -- Use an existing secret instead of creating one.
+  # Secret must contain AUTHENTIK_HOST, AUTHENTIK_TOKEN, AUTHENTIK_INSECURE keys.
+  existingSecretName: ""
+
+service:
+  # -- The type of Kubernetes service to create for the outpost.
+  type: ClusterIP
+  # -- The HTTP port for the service.
+  portHttp: 9000
+  # -- The HTTPS port for the service.
+  portHttps: 9443
+
+# -- Liveness probe configuration for the outpost pod.
+# Checks if the outpost is alive by hitting the ping endpoint.
+# If the probe fails, Kubernetes will restart the pod.
+livenessProbe:
+  httpGet:
+    path: /outpost.goauthentik.io/ping
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+# -- Readiness probe configuration for the outpost pod.
+# Checks if the outpost is ready to receive traffic.
+# If the probe fails, Kubernetes will remove the pod from the load balancer.
+readinessProbe:
+  httpGet:
+    path: /outpost.goauthentik.io/ping
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+# -- Resource requests and limits for the outpost pod.
+# It is recommended to adjust these values based on observed performance.
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# -- Node selector for pod assignment.
+nodeSelector: {}
+
+# -- Tolerations for pod assignment.
+tolerations: []
+
+# -- Affinity rules for pod assignment.
+affinity: {}
+
+ingress:
+# -- Enable ingress for the outpost
+  enabled: false
+
+# -- Primary hostname for the outpost (e.g. outpost.domain.com)
+  host: ""
+
+# -- IP ranges allowed to access the outpost endpoint
+  whitelistSourceRange: []
+
+# -- Additional ingress annotations
+  annotations: {}
+
+# -- List of additional hostnames for applications protected by this outpost
+# Each application's domain must be added here so nginx can route auth requests correctly
+  extraHosts: []
+#     - app1.domain.com
+#     - app2.domain.com
+
+# -- TLS configuration for the ingress
+# Example:
+  tls: []
+#   tls:
+#   - secretName: my-tls-secret
+#     hosts:
+#       - outpost.domain.com

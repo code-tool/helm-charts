@@ -1,0 +1,12 @@
+name: authentik-outpost
+version: 0.1.0
+appVersion: "2026.2.6"
+apiVersion: v2
+description: A Helm chart for deploying a manual Authentik Proxy Outpost
+type: application
+sources:
+  - https://github.com/code-tool/helm-charts/tree/main/charts/authentik-outpost
+dependencies:
+  - name: common
+    repository: https://code-tool.github.io/helm-charts
+    version: 0.x.x
