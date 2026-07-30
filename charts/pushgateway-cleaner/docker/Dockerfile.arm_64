@@ -1,0 +1,30 @@
+FROM clojure:temurin-11-tools-deps AS base
+
+# Setup GraalVM
+RUN apt-get update && \
+    apt-get install --no-install-recommends -yy curl unzip build-essential zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR "/opt"
+RUN curl -sLO https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.3/graalvm-ce-java11-linux-aarch64-22.3.3.tar.gz && \
+    tar -xzf graalvm-ce-java11-linux-aarch64-22.3.3.tar.gz && \
+    rm graalvm-ce-java11-linux-aarch64-22.3.3.tar.gz
+ENV GRAALVM_HOME="/opt/graalvm-ce-java11-22.3.3"
+RUN $GRAALVM_HOME/bin/gu install native-image
+
+# Cache dependencies
+COPY ./deps.edn ./deps.edn
+RUN clojure -P -A:test:native-image
+COPY . .
+
+# Run tests
+RUN clojure -M:test
+
+# Build binary
+ARG GIT_REF
+RUN clojure -J-Dversion=$(echo $GIT_REF | cut -d/ -f3-) -M:native-image
+
+
+# Create minimal image
+FROM busybox:stable-glibc
+COPY --from=base /opt/prometheus_pushgateway_cleaner /usr/bin/prometheus_pushgateway_cleaner
+ENTRYPOINT ["prometheus_pushgateway_cleaner"]

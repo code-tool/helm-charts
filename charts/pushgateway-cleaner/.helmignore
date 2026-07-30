@@ -24,3 +24,4 @@
 tests/
 *.ignore.yaml
 README.md
+docker/
