@@ -39,7 +39,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "common.names.fullname" . }}
+                name: {{ include "common.names.fullname" $ }}
                 port:
                   name: http
     {{- end }}

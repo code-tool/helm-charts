@@ -95,3 +95,34 @@ spec:
   selector:
     app.kubernetes.io/name: authentik-outpost
     app.kubernetes.io/instance: golden-file-test
+---
+# Source: authentik-outpost/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: golden-file-test-authentik-outpost
+  annotations:
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: outpost.test.com
+      http:
+        paths:
+          - path: /outpost.goauthentik.io
+            pathType: Prefix
+            backend:
+              service:
+                name: golden-file-test-authentik-outpost
+                port:
+                  name: http
+    - host: service.test.com
+      http:
+        paths:
+          - path: /outpost.goauthentik.io
+            pathType: Prefix
+            backend:
+              service:
+                name: golden-file-test-authentik-outpost
+                port:
+                  name: http

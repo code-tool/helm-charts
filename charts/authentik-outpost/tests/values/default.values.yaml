@@ -2,3 +2,10 @@ authentik:
   host: "https://authentik.test.com"
   token: "token"
   insecure: false
+ingress:
+  enabled: true
+  host: "outpost.test.com"
+  whitelistSourceRange:
+    - "10.0.0.0/8"
+  extraHosts:
+    - service.test.com

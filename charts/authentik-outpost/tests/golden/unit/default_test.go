@@ -24,6 +24,7 @@ func TestGoldenDefault(t *testing.T) {
 			"templates/deployment.yaml",
 			"templates/secret.yaml",
 			"templates/service.yaml",
+			"templates/ingress.yaml",
 		},
 		ValuesFiles: []string{
 			"../../values/default.values.yaml",
