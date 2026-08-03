@@ -1,6 +1,7 @@
 image:
-  repository: jorinvo/prometheus-pushgateway-cleaner
-  tag: 0.5.0
+  #repository: jorinvo/prometheus-pushgateway-cleaner
+  repository: ghcr.io/code-tool/helm-charts/prometheus-pushgateway-cleaner
+  tag: 0.5.1
   pullPolicy: IfNotPresent
 cronSchedule: "*/5 * * * *"
 metricUrl: "http://pushgateway-prometheus-pushgateway:9091/metrics"
