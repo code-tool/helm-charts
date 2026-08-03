@@ -200,6 +200,13 @@ entries:
     version: 0.0.1
   pushgateway-cleaner:
   - apiVersion: v1
+    created: "2026-08-03T18:09:16.026561902Z"
+    digest: 19b990eacdf2b16518be49c7c297def1ab9d34af0e0c75208b53f47780d1c47c
+    name: pushgateway-cleaner
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/pushgateway-cleaner-0.2.0/pushgateway-cleaner-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v1
     created: "2026-07-31T13:19:45.097372442Z"
     digest: e188ff25fa71468010c2098bd8cabf7d5a1b6529651b5062d5a5077756534385
     name: pushgateway-cleaner
@@ -330,4 +337,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2026-08-03T08:52:13.539066606Z"
+generated: "2026-08-03T18:09:16.02659911Z"
