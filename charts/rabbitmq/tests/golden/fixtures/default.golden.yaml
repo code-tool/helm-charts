@@ -114,8 +114,8 @@ metadata:
     app.kubernetes.io/version: 4.0.9
 type: Opaque
 data:
-  rabbitmq-password: "NmJsYzRVa0J5TGNEb2h0aA=="
-  rabbitmq-erlang-cookie: "TDdaWWdIYU90c2VubXE1Z0xKeng2M1RnYWQwNUJoRm8="
+  rabbitmq-password: "S3ZOa0xZYld4bUNJUGE2Ug=="
+  rabbitmq-erlang-cookie: "WVhGTFdDRHFqSzN3UFlnVHh5U3VaNTNENmg0aHhua0s="
 ---
 # Source: rabbitmq/templates/serviceaccount.yaml
 apiVersion: v1
@@ -161,8 +161,8 @@ spec:
         app.kubernetes.io/name: rabbitmq
         app.kubernetes.io/version: 4.0.9
       annotations:
-        checksum/config: a63b845796f24b9f3075c0535e085948ded2cf862aceb31c77af8c2709180c09
-        checksum/secret: faaed8f26fa6ace64e219bd7993a1114178d59989e0a1bc8c531894a3e72eb10
+        checksum/config: 59f9e391321077bceea3937a72be437e304f3b8f7cc26f6065b98527ad38f539
+        checksum/secret: 73f2829c48db8154844d824d2461c5f7b1f911debfc693b516ca67e3944b3317
     spec:
       
       serviceAccountName: golden-file-test-rabbitmq

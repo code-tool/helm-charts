@@ -1,0 +1,9 @@
+gatewayApi:
+  enabled: true
+  parentRefs:
+    - name: my-gateway
+      namespace: gateway-system
+      sectionName: https
+  hostname: rabbitmq.test.com
+  extraHostnames:
+    - rabbitmq-alt.test.com
