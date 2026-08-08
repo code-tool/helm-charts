@@ -3,6 +3,22 @@ entries:
   authentik-outpost:
   - apiVersion: v2
     appVersion: 2026.2.6
+    created: "2026-08-08T22:16:07.284436658Z"
+    dependencies:
+    - name: common
+      repository: https://code-tool.github.io/helm-charts
+      version: 0.x.x
+    description: A Helm chart for deploying a manual Authentik Proxy Outpost
+    digest: bc4155e14666d6c34feff50d157e01abd59d425e6992bc523912f90fc195ad21
+    name: authentik-outpost
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/authentik-outpost
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/authentik-outpost-0.2.0/authentik-outpost-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 2026.2.6
     created: "2026-08-03T08:52:13.539016893Z"
     dependencies:
     - name: common
@@ -373,4 +389,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2026-08-03T19:27:08.397323788Z"
+generated: "2026-08-08T22:16:07.284476713Z"
