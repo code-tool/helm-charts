@@ -9,3 +9,12 @@ ingress:
     - "10.0.0.0/8"
   extraHosts:
     - service.test.com
+gatewayApi:
+  enabled: true
+  parentRefs:
+    - name: my-gateway
+      namespace: gateway-system
+      sectionName: https
+  host: "outpost.test.com"
+  extraHosts:
+    - service.test.com

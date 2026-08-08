@@ -101,3 +101,33 @@ ingress:
 #   - secretName: my-tls-secret
 #     hosts:
 #       - outpost.domain.com
+
+gatewayApi:
+# -- Enable an HTTPRoute (gateway.networking.k8s.io/v1) for the outpost
+  enabled: false
+
+# -- List of Gateway API parentRefs the HTTPRoute should attach to. Required when gatewayApi.enabled is true.
+# Example:
+#   parentRefs:
+#   - name: my-gateway
+#     namespace: gateway-system
+#     sectionName: https
+  parentRefs: []
+
+# -- Primary hostname for the outpost (e.g. outpost.domain.com)
+  host: ""
+
+# -- List of additional hostnames for applications protected by this outpost
+# Each application's domain must be added here so the route matches auth requests correctly
+  extraHosts: []
+#     - app1.domain.com
+#     - app2.domain.com
+
+# -- Additional filters for the HTTPRoute rule (e.g. request header modifiers)
+  filters: []
+
+# -- Additional annotations for the HTTPRoute
+  annotations: {}
+
+# -- Additional common annotations for the HTTPRoute (merged with annotations)
+  commonAnnotations: {}
