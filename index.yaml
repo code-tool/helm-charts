@@ -246,6 +246,24 @@ entries:
   rabbitmq:
   - apiVersion: v2
     appVersion: 4.0.9
+    created: "2026-08-08T22:18:53.193217281Z"
+    dependencies:
+    - name: common
+      repository: https://code-tool.github.io/helm-charts
+      version: 0.x.x
+    description: RabbitMQ is an open source general-purpose message broker that is
+      designed for consistent, highly-available messaging scenarios (both synchronous
+      and asynchronous).
+    digest: 259f963ce0620b5c715654dc07d164aa55ce96bce93133db7076418e815235e9
+    name: rabbitmq
+    sources:
+    - https://github.com/code-tool/helm-charts/tree/main/charts/rabbitmq
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/rabbitmq-0.5.0/rabbitmq-0.5.0.tgz
+    version: 0.5.0
+  - apiVersion: v2
+    appVersion: 4.0.9
     created: "2026-08-03T19:27:08.397278824Z"
     dependencies:
     - name: common
@@ -389,4 +407,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2026-08-08T22:16:07.284476713Z"
+generated: "2026-08-08T22:18:53.193274107Z"
