@@ -1,4 +1,10 @@
 # Changelog
+
+## [0.3.1]
+
+### Added
+- `service.loadBalancerIP` to pin a pre-reserved static IP on a LoadBalancer Service.
+
 ## [0.3.0]
 
 ### Added

@@ -1,5 +1,5 @@
 name: authentik-outpost
-version: 0.3.0
+version: 0.3.1
 appVersion: "2026.8.3"
 apiVersion: v2
 description: A Helm chart for deploying a manual Authentik Outpost

@@ -38,6 +38,10 @@ authentik:
 service:
   # -- The type of Kubernetes service to create for the outpost.
   type: ClusterIP
+  # -- Static IP for the LoadBalancer (only with type: LoadBalancer).
+  # The address must be reserved beforehand in your cloud provider, otherwise
+  # the IP is ephemeral and changes whenever the Service is recreated.
+  loadBalancerIP: ""
   # -- IP ranges allowed to access the Service (relevant only when type: LoadBalancer).
   loadBalancerSourceRanges: []
  
