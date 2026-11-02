@@ -1,0 +1,438 @@
+---
+# Source: rabbitmq/templates/config-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: golden-file-test-rabbitmq-config
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.2.9
+type: Opaque
+data:
+  rabbitmq.conf: |-
+    IyMgVXNlcm5hbWUgYW5kIHBhc3N3b3JkCmRlZmF1bHRfdXNlciA9IHVzZXIKIyMgQ2x1c3RlcmluZwojIwpjbHVzdGVyX25hbWUgPSBnb2xkZW4tZmlsZS10ZXN0LXJhYmJpdG1xCmNsdXN0ZXJfZm9ybWF0aW9uLnBlZXJfZGlzY292ZXJ5X2JhY2tlbmQgID0gcmFiYml0X3BlZXJfZGlzY292ZXJ5X2s4cwpjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAuaW50ZXJ2YWwgPSAxMApjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAub25seV9sb2dfd2FybmluZyA9IHRydWUKY2x1c3Rlcl9wYXJ0aXRpb25faGFuZGxpbmcgPSBhdXRvaGVhbAoKIyMgUXVldWUgbGVhZGVyIGxvY2F0b3IKcXVldWVfbGVhZGVyX2xvY2F0b3IgPSBiYWxhbmNlZAojIGVuYWJsZSBsb29wYmFjayB1c2VyCmxvb3BiYWNrX3VzZXJzLnVzZXIgPSBmYWxzZQojZGVmYXVsdF92aG9zdCA9IHRlc3QtbmFtZXNwYWNlLXZob3N0CiNkaXNrX2ZyZWVfbGltaXQuYWJzb2x1dGUgPSA1ME1CCnNzbF9vcHRpb25zLnZlcmlmeSA9IHZlcmlmeV9wZWVyCmxpc3RlbmVycy5zc2wuZGVmYXVsdCA9IDU2NzEKc3NsX29wdGlvbnMuZmFpbF9pZl9ub19wZWVyX2NlcnQgPSB0cnVlCnNzbF9vcHRpb25zLmNhY2VydGZpbGUgPSAvZXRjL3JhYmJpdG1xLWNlcnRzL2NhX2NlcnRpZmljYXRlLnBlbQpzc2xfb3B0aW9ucy5jZXJ0ZmlsZSA9IC9ldGMvcmFiYml0bXEtY2VydHMvc2VydmVyX2NlcnRpZmljYXRlLnBlbQpzc2xfb3B0aW9ucy5rZXlmaWxlID0gL2V0Yy9yYWJiaXRtcS1jZXJ0cy9zZXJ2ZXJfa2V5LnBlbQojIyBQcm9tZXRoZXVzIG1ldHJpY3MKIyMKcHJvbWV0aGV1cy50Y3AucG9ydCA9IDk0MTkKIyMgTWVtb3J5IFRocmVzaG9sZAojIwp0b3RhbF9tZW1vcnlfYXZhaWxhYmxlX292ZXJyaWRlX3ZhbHVlID0gMTA3Mzc0MTgyNAp2bV9tZW1vcnlfaGlnaF93YXRlcm1hcmsucmVsYXRpdmUgPSAwLjYKIyMgVENQIExpc3RlbiBPcHRpb25zCiMjCnRjcF9saXN0ZW5fb3B0aW9ucy5iYWNrbG9nID0gMTI4CnRjcF9saXN0ZW5fb3B0aW9ucy5ub2RlbGF5ID0gdHJ1ZQp0Y3BfbGlzdGVuX29wdGlvbnMubGluZ2VyLm9uICAgICAgPSB0cnVlCnRjcF9saXN0ZW5fb3B0aW9ucy5saW5nZXIudGltZW91dCA9IDAKdGNwX2xpc3Rlbl9vcHRpb25zLmtlZXBhbGl2ZSA9IGZhbHNl
+---
+# Source: rabbitmq/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: golden-file-test-rabbitmq
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.2.9
+type: Opaque
+data:
+  rabbitmq-password: "Z29sZGVuLXBhc3N3b3Jk"
+  rabbitmq-erlang-cookie: "Z29sZGVuLWVybGFuZy1jb29raWU="
+---
+# Source: rabbitmq/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: golden-file-test-rabbitmq
+  namespace: "test-namespace"
+  labels:
+    app.kubernetes.io/instance: golden-file-test
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.2.9
+spec:
+  serviceName: golden-file-test-rabbitmq-headless
+  podManagementPolicy: Parallel
+  replicas: 3
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: golden-file-test
+      app.kubernetes.io/name: rabbitmq
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: golden-file-test
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: rabbitmq
+        app.kubernetes.io/version: 4.2.9
+      annotations:
+        checksum/config: d287ffa0e9b80f92df3f5e135934d104579faaf1d76aba4243cf0aade232993f
+        checksum/secret: 618fd82ef4f3b4a37a9455a1ec36e11d9198637b45831dc09eaf6a4516d61ae0
+        prometheus.io/port: '9419'
+        prometheus.io/scrape: "true"
+    spec:
+      
+      serviceAccountName: golden-file-test-rabbitmq
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: golden-file-test
+                    app.kubernetes.io/name: rabbitmq
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      automountServiceAccountToken: true
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      terminationGracePeriodSeconds: 120
+      enableServiceLinks: true
+      initContainers:
+        - name: volume-permissions
+          image: docker.io/library/busybox:1.37.0
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/sh
+          args:
+            - -ec
+            - |
+              mkdir -p "/var/lib/rabbitmq/mnesia"
+              chown "1001:1001" "/var/lib/rabbitmq/mnesia"
+              find "/var/lib/rabbitmq/mnesia" -mindepth 1 -maxdepth 1 -not -name ".snapshot" -not -name "lost+found" | \
+                xargs -r chown -R "1001:1001"
+          securityContext:
+            runAsUser: 0
+            seLinuxOptions: {}
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: data
+              mountPath: /var/lib/rabbitmq/mnesia
+        - name: download-community-plugins
+          image: docker.io/curlimages/curl:8.23.0
+          imagePullPolicy: "IfNotPresent"
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/sh
+          args:
+            - -ec
+            - |
+              cd /community-plugins
+              for plugin in https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/v4.2.0/rabbitmq_delayed_message_exchange-4.2.0.ez; do
+                echo "Downloading community plugin ${plugin}"
+                curl --fail --silent --show-error --location --retry 3 --remote-name "${plugin}"
+              done
+              ls -l /community-plugins
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /community-plugins
+              subPath: app-community-plugins-dir
+        - name: prepare-rabbitmq
+          image: docker.io/library/rabbitmq:4.2.9-management
+          imagePullPolicy: "IfNotPresent"
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              echo "Rendering RabbitMQ configuration into /etc/rabbitmq"
+              mkdir -p /etc/rabbitmq/conf.d
+              if [[ -f /rabbitmq-config/rabbitmq.conf ]]; then
+                cp /rabbitmq-config/rabbitmq.conf /etc/rabbitmq/rabbitmq.conf
+              fi
+              if [[ -f /rabbitmq-config/advanced.config ]]; then
+                cp /rabbitmq-config/advanced.config /etc/rabbitmq/advanced.config
+              fi
+              echo '[rabbitmq_management,rabbitmq_peer_discovery_k8s,rabbitmq_auth_backend_ldap,rabbitmq_delayed_message_exchange,rabbitmq_prometheus].' > /etc/rabbitmq/enabled_plugins
+
+              # Default user (only applied when the cluster boots for the first time)
+              if [[ -n "${RABBITMQ_PASSWORD_FILE:-}" ]]; then
+                RABBITMQ_PASSWORD="$(< "${RABBITMQ_PASSWORD_FILE}")"
+              fi
+              {
+                echo "default_user = ${RABBITMQ_USERNAME}"
+                echo "default_pass = ${RABBITMQ_PASSWORD}"
+              } > /etc/rabbitmq/conf.d/10-default-user.conf
+              chmod 600 /etc/rabbitmq/conf.d/10-default-user.conf
+
+              # Erlang cookie ($HOME=/var/lib/rabbitmq in the official image)
+              if [[ -n "${ERLANG_COOKIE_FILE:-}" ]]; then
+                ERLANG_COOKIE="$(< "${ERLANG_COOKIE_FILE}")"
+              fi
+              rm -f "${HOME}/.erlang.cookie"
+              printf '%s' "${ERLANG_COOKIE}" > "${HOME}/.erlang.cookie"
+              chmod 400 "${HOME}/.erlang.cookie"
+
+              # Force boot (Mnesia metadata store only, no-op for Khepri)
+              if [[ -d "${RABBITMQ_MNESIA_DIR}" ]]; then
+                echo "Executing 'rabbitmqctl force_boot'"
+                rabbitmqctl force_boot || echo "WARNING: 'rabbitmqctl force_boot' failed, continuing"
+              fi
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RABBITMQ_NODENAME
+              value: "rabbit@$(MY_POD_NAME).golden-file-test-rabbitmq-headless.$(MY_POD_NAMESPACE).svc.cluster.local"
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+            - name: RABBITMQ_MNESIA_DIR
+              value: "/var/lib/rabbitmq/mnesia/$(RABBITMQ_NODENAME)"
+            - name: RABBITMQ_USERNAME
+              value: "user"
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: golden-file-test-rabbitmq
+                  key: rabbitmq-password
+            - name: ERLANG_COOKIE
+              valueFrom:
+                secretKeyRef:
+                  name: golden-file-test-rabbitmq
+                  key: rabbitmq-erlang-cookie
+          volumeMounts:
+            - name: configuration
+              mountPath: /rabbitmq-config
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /etc/rabbitmq
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /var/lib/rabbitmq
+              subPath: app-home-dir
+            - name: data
+              mountPath: /var/lib/rabbitmq/mnesia
+      containers:
+        - name: rabbitmq
+          image: docker.io/library/rabbitmq:4.2.9-management
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                    if ! rabbitmqctl --quiet await_startup --timeout 300; then
+                      echo "WARNING: RabbitMQ did not start in time, skipping postStart actions"
+                      exit 0
+                    fi
+                    if [[ -n "${RABBITMQ_PASSWORD_FILE:-}" ]]; then
+                      RABBITMQ_PASSWORD="$(< "${RABBITMQ_PASSWORD_FILE}")"
+                    fi
+                    printf '%s' "${RABBITMQ_PASSWORD}" | rabbitmqctl --quiet change_password "${RABBITMQ_USERNAME}" || echo "WARNING: unable to update password"
+                    rabbitmq-queues --quiet rebalance all || echo "WARNING: unable to rebalance queues"
+                    exit 0
+            preStop:
+              exec:
+                command:
+                  - /bin/bash
+                  - -ec
+                  - |
+                    # Do not stop the node while it is required to keep quorum queues / streams available
+                    rabbitmq-upgrade --quiet await_online_quorum_plus_one -t 120 || true
+                    rabbitmqctl --quiet stop_app || true
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RABBITMQ_NODENAME
+              value: "rabbit@$(MY_POD_NAME).golden-file-test-rabbitmq-headless.$(MY_POD_NAMESPACE).svc.cluster.local"
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+            - name: RABBITMQ_MNESIA_DIR
+              value: "/var/lib/rabbitmq/mnesia/$(RABBITMQ_NODENAME)"
+            - name: RABBITMQ_USERNAME
+              value: "user"
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: golden-file-test-rabbitmq
+                  key: rabbitmq-password
+            - name: RABBITMQ_PLUGINS_DIR
+              value: "/opt/rabbitmq/plugins:/opt/rabbitmq/community-plugins"
+            - name: RABBITMQ_LOGS
+              value: "-"
+            - name: ERL_CRASH_DUMP
+              value: "/var/log/rabbitmq/erl_crash.dump"
+          envFrom:
+          ports:
+            - name: amqp
+              containerPort: 5672
+            - name: dist
+              containerPort: 25672
+            - name: stats
+              containerPort: 15672
+            - name: epmd
+              containerPort: 4369
+            - name: metrics
+              containerPort: 9419
+            - name: amqp-tls
+              containerPort: 5671
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 20
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - rabbitmq-diagnostics -q ping
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 20
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /etc/rabbitmq
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /var/lib/rabbitmq
+              subPath: app-home-dir
+            - name: empty-dir
+              mountPath: /var/log/rabbitmq
+              subPath: app-logs-dir
+            - name: empty-dir
+              mountPath: /opt/rabbitmq/community-plugins
+              subPath: app-community-plugins-dir
+            - name: data
+              mountPath: /var/lib/rabbitmq/mnesia
+            - name: certs
+              mountPath: /etc/rabbitmq-certs
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: certs
+          projected:
+            sources:
+              - secret:
+                  name: rabbitmq-tls
+                  items:
+                    - key: ca.crt
+                      path: ca_certificate.pem
+                    - key: tls.crt
+                      path: server_certificate.pem
+                    - key: tls.key
+                      path: server_key.pem
+        - name: configuration
+          projected:
+            sources:
+              - secret:
+                  name: golden-file-test-rabbitmq-config
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          app.kubernetes.io/instance: golden-file-test
+          app.kubernetes.io/name: rabbitmq
+      spec:
+        accessModes:
+            - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"

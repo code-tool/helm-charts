@@ -52,3 +52,51 @@ func TestGoldenDefault(t *testing.T) {
 		},
 	})
 }
+
+// official image with clustering, TLS, metrics, community plugins, updatePassword, rebalance
+func TestGoldenOfficial(t *testing.T) {
+	t.Parallel()
+
+	chartPath, err := filepath.Abs("../../..")
+	require.NoError(t, err)
+
+	suite.Run(t, &golden.TemplateGoldenTest{
+		ChartPath:      chartPath,
+		Release:        "golden-file-test",
+		Namespace:      "test-namespace",
+		GoldenFileName: "official",
+		Templates: []string{
+			"templates/config-secret.yaml",
+			"templates/secrets.yaml",
+			"templates/statefulset.yaml",
+		},
+		SetValues: defaultSetValues,
+		ValuesFiles: []string{
+			"../../values/official.values.yaml",
+		},
+	})
+}
+
+// legacy Bitnami image (image.bitnami=true)
+func TestGoldenBitnami(t *testing.T) {
+	t.Parallel()
+
+	chartPath, err := filepath.Abs("../../..")
+	require.NoError(t, err)
+
+	suite.Run(t, &golden.TemplateGoldenTest{
+		ChartPath:      chartPath,
+		Release:        "golden-file-test",
+		Namespace:      "test-namespace",
+		GoldenFileName: "bitnami",
+		Templates: []string{
+			"templates/config-secret.yaml",
+			"templates/secrets.yaml",
+			"templates/statefulset.yaml",
+		},
+		SetValues: defaultSetValues,
+		ValuesFiles: []string{
+			"../../values/bitnami.values.yaml",
+		},
+	})
+}

@@ -1,0 +1,30 @@
+# Official image
+replicaCount: 3
+podManagementPolicy: Parallel
+usePasswordFiles: false
+auth:
+  password: "golden-password"
+  erlangCookie: "golden-erlang-cookie"
+  updatePassword: true
+  tls:
+    enabled: true
+    existingSecret: rabbitmq-tls
+clustering:
+  rebalance: true
+  forceBoot: true
+metrics:
+  enabled: true
+communityPlugins: "https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/v4.2.0/rabbitmq_delayed_message_exchange-4.2.0.ez"
+extraPlugins: "rabbitmq_auth_backend_ldap rabbitmq_delayed_message_exchange"
+memoryHighWatermark:
+  enabled: true
+  type: relative
+  value: 0.6
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    memory: 1Gi
+volumePermissions:
+  enabled: true

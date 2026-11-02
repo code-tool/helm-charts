@@ -8,6 +8,119 @@ Return the proper RabbitMQ image name
 {{- end -}}
 
 {{/*
+Return true when the legacy Bitnami image layout is used (image.bitnami=true).
+The official image (docker.io/library/rabbitmq) is used otherwise.
+*/}}
+{{- define "rabbitmq.isBitnami" -}}
+{{- if .Values.image.bitnami -}}
+    {{- true -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Path where the persistent volume (node data dir base) is mounted.
+*/}}
+{{- define "rabbitmq.persistence.mountPath" -}}
+{{- if .Values.persistence.mountPath -}}
+    {{- .Values.persistence.mountPath -}}
+{{- else if (include "rabbitmq.isBitnami" .) -}}
+    {{- print "/opt/bitnami/rabbitmq/.rabbitmq/mnesia" -}}
+{{- else -}}
+    {{- print "/var/lib/rabbitmq/mnesia" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Directory where TLS certificates (ca_certificate.pem, server_certificate.pem, server_key.pem) are mounted.
+*/}}
+{{- define "rabbitmq.certsDir" -}}
+{{- if (include "rabbitmq.isBitnami" .) -}}
+    {{- print "/opt/bitnami/rabbitmq/certs" -}}
+{{- else -}}
+    {{- print "/etc/rabbitmq-certs" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Directory where the password / erlang cookie secrets are mounted when usePasswordFiles=true.
+*/}}
+{{- define "rabbitmq.secretsDir" -}}
+{{- if (include "rabbitmq.isBitnami" .) -}}
+    {{- print "/opt/bitnami/rabbitmq/secrets" -}}
+{{- else -}}
+    {{- print "/etc/rabbitmq-secrets" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Content of the enabled_plugins file for the official image, e.g. [rabbitmq_management,rabbitmq_prometheus].
+*/}}
+{{- define "rabbitmq.enabledPluginsFile" -}}
+{{- $plugins := include "rabbitmq.plugins" . | replace "," " " | splitList " " | compact | uniq -}}
+{{- printf "[%s]." (join "," $plugins) -}}
+{{- end -}}
+
+{{/*
+Common environment variables for the official image (main container and prepare-rabbitmq init container).
+Usage: {{ include "rabbitmq.official.env" (dict "init" true "context" $) }}
+*/}}
+{{- define "rabbitmq.official.env" -}}
+{{- $ctx := .context -}}
+{{- $svcName := printf "%s-%s" (include "common.names.fullname" $ctx) (default "headless" $ctx.Values.servicenameOverride) -}}
+- name: MY_POD_IP
+  valueFrom:
+    fieldRef:
+      fieldPath: status.podIP
+- name: MY_POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: MY_POD_NAMESPACE
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.namespace
+- name: RABBITMQ_NODENAME
+  value: "rabbit@$(MY_POD_NAME).{{ $svcName }}.$(MY_POD_NAMESPACE).svc.{{ $ctx.Values.clusterDomain }}"
+- name: RABBITMQ_USE_LONGNAME
+  value: "true"
+- name: RABBITMQ_MNESIA_DIR
+  value: "{{ include "rabbitmq.persistence.mountPath" $ctx }}/$(RABBITMQ_NODENAME)"
+{{- if or .init $ctx.Values.auth.updatePassword }}
+- name: RABBITMQ_USERNAME
+  value: {{ $ctx.Values.auth.username | quote }}
+{{- if $ctx.Values.usePasswordFiles }}
+- name: RABBITMQ_PASSWORD_FILE
+  value: {{ printf "%s/%s" (include "rabbitmq.secretsDir" $ctx) (include "rabbitmq.secretPasswordKey" $ctx) }}
+{{- else }}
+- name: RABBITMQ_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: {{ template "rabbitmq.secretPasswordName" $ctx }}
+      key: {{ template "rabbitmq.secretPasswordKey" $ctx }}
+{{- end }}
+{{- end }}
+{{- if .init }}
+{{- if $ctx.Values.usePasswordFiles }}
+- name: ERLANG_COOKIE_FILE
+  value: {{ printf "%s/%s" (include "rabbitmq.secretsDir" $ctx) (include "rabbitmq.secretErlangKey" $ctx) }}
+{{- else }}
+- name: ERLANG_COOKIE
+  valueFrom:
+    secretKeyRef:
+      name: {{ template "rabbitmq.secretErlangName" $ctx }}
+      key: {{ template "rabbitmq.secretErlangKey" $ctx }}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Return the proper image name (for the community plugins downloader init container)
+*/}}
+{{- define "rabbitmq.communityPlugins.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.communityPluginsDownloader.image "global" .Values.global) }}
+{{- end -}}
+
+{{/*
 Return the proper image name (for the init container volume-permissions image)
 */}}
 {{- define "rabbitmq.volumePermissions.image" -}}
@@ -18,7 +131,7 @@ Return the proper image name (for the init container volume-permissions image)
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "rabbitmq.imagePullSecrets" -}}
-{{ include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.volumePermissions.image) "context" $) }}
+{{ include "common.images.renderPullSecrets" (dict "images" (list .Values.image .Values.volumePermissions.image .Values.communityPluginsDownloader.image) "context" $) }}
 {{- end -}}
 
 {{/*
@@ -161,6 +274,8 @@ Compile all warnings into a single message, and call fail.
 {{- $messages := append $messages (include "rabbitmq.validateValues.memoryHighWatermark" .) -}}
 {{- $messages := append $messages (include "rabbitmq.validateValues.ingress.tls" .) -}}
 {{- $messages := append $messages (include "rabbitmq.validateValues.auth.tls" .) -}}
+{{- $messages := append $messages (include "rabbitmq.validateValues.officialImage" .) -}}
+{{- $messages := append $messages (include "rabbitmq.validateValues.clustering" .) -}}
 {{- $messages := without $messages "" -}}
 {{- $message := join "\n" $messages -}}
 
@@ -180,7 +295,7 @@ Validate values of rabbitmq - LDAP support
 rabbitmq: LDAP
     Invalid LDAP configuration. When enabling LDAP support, the parameters "ldap.servers" or "ldap.uri" are mandatory
     to configure the connection and "ldap.userDnPattern" or "ldap.basedn" are necessary to lookup the users. Please provide them:
-    $ helm install {{ .Release.Name }} oci://registry-1.docker.io/bitnamicharts/rabbitmq \
+    $ helm install {{ .Release.Name }} code-tool-charts/rabbitmq \
       --set ldap.enabled=true \
       --set ldap.servers[0]=my-ldap-server" \
       --set ldap.port="389" \
@@ -202,7 +317,7 @@ rabbitmq: memoryHighWatermark
     You enabled configuring memory high watermark using a relative limit. However,
     no memory limits were defined at POD level. Define your POD limits as shown below:
 
-    $ helm install {{ .Release.Name }} oci://registry-1.docker.io/bitnamicharts/rabbitmq \
+    $ helm install {{ .Release.Name }} code-tool-charts/rabbitmq \
       --set memoryHighWatermark.enabled=true \
       --set memoryHighWatermark.type="relative" \
       --set memoryHighWatermark.value="0.4" \
@@ -210,7 +325,7 @@ rabbitmq: memoryHighWatermark
 
     Altenatively, user an absolute value for the memory memory high watermark :
 
-    $ helm install {{ .Release.Name }} oci://registry-1.docker.io/bitnamicharts/rabbitmq \
+    $ helm install {{ .Release.Name }} code-tool-charts/rabbitmq \
       --set memoryHighWatermark.enabled=true \
       --set memoryHighWatermark.type="absolute" \
       --set memoryHighWatermark.value="512MB"
@@ -245,6 +360,34 @@ rabbitmq: auth.tls
       - Provide an existing secret containing the TLS certificates using `auth.tls.existingSecret`
       - Provide the plain text certificates using `auth.tls.caCertificate`, `auth.tls.serverCertificate` and `auth.tls.serverKey`.
       - Enable auto-generated certificates using `auth.tls.autoGenerated`.
+{{- end -}}
+{{- end -}}
+
+{{/*
+Validate values of RabbitMQ - features that only exist in the legacy Bitnami image
+*/}}
+{{- define "rabbitmq.validateValues.officialImage" -}}
+{{- if and (not (include "rabbitmq.isBitnami" .)) (or .Values.initScripts .Values.initScriptsCM .Values.initScriptsSecret) }}
+rabbitmq: initScripts
+    initScripts / initScriptsCM / initScriptsSecret are executed by the Bitnami entrypoint only.
+    The official RabbitMQ image does not run /docker-entrypoint-initdb.d scripts.
+    Please use one of these alternatives:
+      - `loadDefinition` to import users, vhosts, queues, policies, etc.
+      - `extraDeploy` with a Job that talks to the management API / rabbitmqctl
+      - `image.bitnami=true` together with a Bitnami-compatible image
+{{- end -}}
+{{- end -}}
+
+{{/*
+Validate values of RabbitMQ - clustering (RabbitMQ >= 4.1 k8s peer discovery)
+*/}}
+{{- define "rabbitmq.validateValues.clustering" -}}
+{{- if and .Values.clustering.enabled (ne .Values.clustering.addressType "hostname") }}
+rabbitmq: clustering.addressType
+    Since RabbitMQ 4.1 the Kubernetes peer discovery plugin derives the seed node (<statefulset>-0)
+    from the stable pod hostname and no longer queries the Kubernetes API.
+    Node names based on pod IPs (clustering.addressType=ip) are not supported anymore.
+    Please set clustering.addressType=hostname.
 {{- end -}}
 {{- end -}}
 
