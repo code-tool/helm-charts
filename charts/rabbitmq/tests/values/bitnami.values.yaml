@@ -1,4 +1,3 @@
-# Legacy Bitnami image
 image:
   bitnami: true
   registry: docker.io

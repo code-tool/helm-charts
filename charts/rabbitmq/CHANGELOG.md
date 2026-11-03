@@ -34,5 +34,5 @@
 - Probes use `rabbitmq-diagnostics` with the official image (the image ships no `curl`).
 - Legacy `cluster_formation.k8s.*` settings are only rendered in Bitnami mode.
 - `prometheus.tcp.port` is only rendered when the `rabbitmq_prometheus` plugin is enabled.
-- `volumePermissions` image: `bitnami/os-shell` → `docker.io/library/busybox:1.37.0` (`/bin/sh`).
+- `volumePermissions` image: `bitnami/os-shell` -> `docker.io/library/busybox:1.37.0` (`/bin/sh`).
 - Validation messages and NOTES no longer reference Bitnami charts/docs.

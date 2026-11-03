@@ -13,7 +13,7 @@ metadata:
 type: Opaque
 data:
   rabbitmq.conf: |-
-    IyMgVXNlcm5hbWUgYW5kIHBhc3N3b3JkCmRlZmF1bHRfdXNlciA9IHVzZXIKIyMgQ2x1c3RlcmluZwojIwpjbHVzdGVyX25hbWUgPSBnb2xkZW4tZmlsZS10ZXN0LXJhYmJpdG1xCmNsdXN0ZXJfZm9ybWF0aW9uLnBlZXJfZGlzY292ZXJ5X2JhY2tlbmQgID0gcmFiYml0X3BlZXJfZGlzY292ZXJ5X2s4cwpjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAuaW50ZXJ2YWwgPSAxMApjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAub25seV9sb2dfd2FybmluZyA9IHRydWUKY2x1c3Rlcl9wYXJ0aXRpb25faGFuZGxpbmcgPSBhdXRvaGVhbAoKIyMgUXVldWUgbGVhZGVyIGxvY2F0b3IKcXVldWVfbGVhZGVyX2xvY2F0b3IgPSBiYWxhbmNlZAojIGVuYWJsZSBsb29wYmFjayB1c2VyCmxvb3BiYWNrX3VzZXJzLnVzZXIgPSBmYWxzZQojZGVmYXVsdF92aG9zdCA9IHRlc3QtbmFtZXNwYWNlLXZob3N0CiNkaXNrX2ZyZWVfbGltaXQuYWJzb2x1dGUgPSA1ME1CCnNzbF9vcHRpb25zLnZlcmlmeSA9IHZlcmlmeV9wZWVyCmxpc3RlbmVycy5zc2wuZGVmYXVsdCA9IDU2NzEKc3NsX29wdGlvbnMuZmFpbF9pZl9ub19wZWVyX2NlcnQgPSB0cnVlCnNzbF9vcHRpb25zLmNhY2VydGZpbGUgPSAvZXRjL3JhYmJpdG1xLWNlcnRzL2NhX2NlcnRpZmljYXRlLnBlbQpzc2xfb3B0aW9ucy5jZXJ0ZmlsZSA9IC9ldGMvcmFiYml0bXEtY2VydHMvc2VydmVyX2NlcnRpZmljYXRlLnBlbQpzc2xfb3B0aW9ucy5rZXlmaWxlID0gL2V0Yy9yYWJiaXRtcS1jZXJ0cy9zZXJ2ZXJfa2V5LnBlbQojIyBQcm9tZXRoZXVzIG1ldHJpY3MKIyMKcHJvbWV0aGV1cy50Y3AucG9ydCA9IDk0MTkKIyMgTWVtb3J5IFRocmVzaG9sZAojIwp0b3RhbF9tZW1vcnlfYXZhaWxhYmxlX292ZXJyaWRlX3ZhbHVlID0gMTA3Mzc0MTgyNAp2bV9tZW1vcnlfaGlnaF93YXRlcm1hcmsucmVsYXRpdmUgPSAwLjYKIyMgVENQIExpc3RlbiBPcHRpb25zCiMjCnRjcF9saXN0ZW5fb3B0aW9ucy5iYWNrbG9nID0gMTI4CnRjcF9saXN0ZW5fb3B0aW9ucy5ub2RlbGF5ID0gdHJ1ZQp0Y3BfbGlzdGVuX29wdGlvbnMubGluZ2VyLm9uICAgICAgPSB0cnVlCnRjcF9saXN0ZW5fb3B0aW9ucy5saW5nZXIudGltZW91dCA9IDAKdGNwX2xpc3Rlbl9vcHRpb25zLmtlZXBhbGl2ZSA9IGZhbHNl
+    IyMgVXNlcm5hbWUgYW5kIHBhc3N3b3JkCmRlZmF1bHRfdXNlciA9IHVzZXIKIyMgQ2x1c3RlcmluZwojIwpjbHVzdGVyX25hbWUgPSBnb2xkZW4tZmlsZS10ZXN0LXJhYmJpdG1xCmNsdXN0ZXJfZm9ybWF0aW9uLnBlZXJfZGlzY292ZXJ5X2JhY2tlbmQgID0gcmFiYml0X3BlZXJfZGlzY292ZXJ5X2s4cwpjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAuaW50ZXJ2YWwgPSAxMApjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAub25seV9sb2dfd2FybmluZyA9IHRydWUKY2x1c3Rlcl9wYXJ0aXRpb25faGFuZGxpbmcgPSBhdXRvaGVhbAoKIyBxdWV1ZSBsZWFkZXIgbG9jYXRvcgpxdWV1ZV9sZWFkZXJfbG9jYXRvciA9IGJhbGFuY2VkCiMgZW5hYmxlIGxvb3BiYWNrIHVzZXIKbG9vcGJhY2tfdXNlcnMudXNlciA9IGZhbHNlCiNkZWZhdWx0X3Zob3N0ID0gdGVzdC1uYW1lc3BhY2Utdmhvc3QKI2Rpc2tfZnJlZV9saW1pdC5hYnNvbHV0ZSA9IDUwTUIKc3NsX29wdGlvbnMudmVyaWZ5ID0gdmVyaWZ5X3BlZXIKbGlzdGVuZXJzLnNzbC5kZWZhdWx0ID0gNTY3MQpzc2xfb3B0aW9ucy5mYWlsX2lmX25vX3BlZXJfY2VydCA9IHRydWUKc3NsX29wdGlvbnMuY2FjZXJ0ZmlsZSA9IC9ldGMvcmFiYml0bXEtY2VydHMvY2FfY2VydGlmaWNhdGUucGVtCnNzbF9vcHRpb25zLmNlcnRmaWxlID0gL2V0Yy9yYWJiaXRtcS1jZXJ0cy9zZXJ2ZXJfY2VydGlmaWNhdGUucGVtCnNzbF9vcHRpb25zLmtleWZpbGUgPSAvZXRjL3JhYmJpdG1xLWNlcnRzL3NlcnZlcl9rZXkucGVtCiMjIFByb21ldGhldXMgbWV0cmljcwojIwpwcm9tZXRoZXVzLnRjcC5wb3J0ID0gOTQxOQojIyBNZW1vcnkgVGhyZXNob2xkCiMjCnRvdGFsX21lbW9yeV9hdmFpbGFibGVfb3ZlcnJpZGVfdmFsdWUgPSAxMDczNzQxODI0CnZtX21lbW9yeV9oaWdoX3dhdGVybWFyay5yZWxhdGl2ZSA9IDAuNgojIyBUQ1AgTGlzdGVuIE9wdGlvbnMKIyMKdGNwX2xpc3Rlbl9vcHRpb25zLmJhY2tsb2cgPSAxMjgKdGNwX2xpc3Rlbl9vcHRpb25zLm5vZGVsYXkgPSB0cnVlCnRjcF9saXN0ZW5fb3B0aW9ucy5saW5nZXIub24gICAgICA9IHRydWUKdGNwX2xpc3Rlbl9vcHRpb25zLmxpbmdlci50aW1lb3V0ID0gMAp0Y3BfbGlzdGVuX29wdGlvbnMua2VlcGFsaXZlID0gZmFsc2U=
 ---
 # Source: rabbitmq/templates/secrets.yaml
 apiVersion: v1
@@ -60,7 +60,7 @@ spec:
         app.kubernetes.io/name: rabbitmq
         app.kubernetes.io/version: 4.2.9
       annotations:
-        checksum/config: d287ffa0e9b80f92df3f5e135934d104579faaf1d76aba4243cf0aade232993f
+        checksum/config: cfb58e77d4cabbb3439a1d5f7fc0a8baeb27641c7b230e2dd5bfb0e38725e1ac
         checksum/secret: 618fd82ef4f3b4a37a9455a1ec36e11d9198637b45831dc09eaf6a4516d61ae0
         prometheus.io/port: '9419'
         prometheus.io/scrape: "true"
@@ -198,7 +198,6 @@ spec:
               fi
               echo '[rabbitmq_management,rabbitmq_peer_discovery_k8s,rabbitmq_auth_backend_ldap,rabbitmq_delayed_message_exchange,rabbitmq_prometheus].' > /etc/rabbitmq/enabled_plugins
 
-              # Default user (only applied when the cluster boots for the first time)
               if [[ -n "${RABBITMQ_PASSWORD_FILE:-}" ]]; then
                 RABBITMQ_PASSWORD="$(< "${RABBITMQ_PASSWORD_FILE}")"
               fi
@@ -208,7 +207,7 @@ spec:
               } > /etc/rabbitmq/conf.d/10-default-user.conf
               chmod 600 /etc/rabbitmq/conf.d/10-default-user.conf
 
-              # Erlang cookie ($HOME=/var/lib/rabbitmq in the official image)
+              # $HOME is /var/lib/rabbitmq in the official image
               if [[ -n "${ERLANG_COOKIE_FILE:-}" ]]; then
                 ERLANG_COOKIE="$(< "${ERLANG_COOKIE_FILE}")"
               fi
@@ -216,7 +215,7 @@ spec:
               printf '%s' "${ERLANG_COOKIE}" > "${HOME}/.erlang.cookie"
               chmod 400 "${HOME}/.erlang.cookie"
 
-              # Force boot (Mnesia metadata store only, no-op for Khepri)
+              # force_boot only affects the Mnesia metadata store, it is a no-op with Khepri
               if [[ -d "${RABBITMQ_MNESIA_DIR}" ]]; then
                 echo "Executing 'rabbitmqctl force_boot'"
                 rabbitmqctl force_boot || echo "WARNING: 'rabbitmqctl force_boot' failed, continuing"
@@ -289,6 +288,11 @@ spec:
                   - /bin/bash
                   - -c
                   - |
+                    # await_startup exits immediately if the node is not reachable yet, so wait for it first
+                    for i in $(seq 1 60); do
+                      rabbitmq-diagnostics -q ping >/dev/null 2>&1 && break
+                      sleep 5
+                    done
                     if ! rabbitmqctl --quiet await_startup --timeout 300; then
                       echo "WARNING: RabbitMQ did not start in time, skipping postStart actions"
                       exit 0
@@ -296,8 +300,9 @@ spec:
                     if [[ -n "${RABBITMQ_PASSWORD_FILE:-}" ]]; then
                       RABBITMQ_PASSWORD="$(< "${RABBITMQ_PASSWORD_FILE}")"
                     fi
-                    printf '%s' "${RABBITMQ_PASSWORD}" | rabbitmqctl --quiet change_password "${RABBITMQ_USERNAME}" || echo "WARNING: unable to update password"
-                    rabbitmq-queues --quiet rebalance all || echo "WARNING: unable to rebalance queues"
+                    # change_password hangs when the password is passed via stdin
+                    timeout 60 rabbitmqctl --quiet change_password "${RABBITMQ_USERNAME}" "${RABBITMQ_PASSWORD}" || echo "WARNING: unable to update password"
+                    timeout 300 rabbitmq-queues --quiet rebalance all || echo "WARNING: unable to rebalance queues"
                     exit 0
             preStop:
               exec:

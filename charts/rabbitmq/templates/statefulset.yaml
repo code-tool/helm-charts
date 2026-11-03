@@ -213,7 +213,6 @@ spec:
               fi
               echo {{ include "rabbitmq.enabledPluginsFile" . | squote }} > /etc/rabbitmq/enabled_plugins
 
-              # Default user (only applied when the cluster boots for the first time)
               if [[ -n "${RABBITMQ_PASSWORD_FILE:-}" ]]; then
                 RABBITMQ_PASSWORD="$(< "${RABBITMQ_PASSWORD_FILE}")"
               fi
@@ -223,7 +222,7 @@ spec:
               } > /etc/rabbitmq/conf.d/10-default-user.conf
               chmod 600 /etc/rabbitmq/conf.d/10-default-user.conf
 
-              # Erlang cookie ($HOME=/var/lib/rabbitmq in the official image)
+              # $HOME is /var/lib/rabbitmq in the official image
               if [[ -n "${ERLANG_COOKIE_FILE:-}" ]]; then
                 ERLANG_COOKIE="$(< "${ERLANG_COOKIE_FILE}")"
               fi
@@ -232,7 +231,7 @@ spec:
               chmod 400 "${HOME}/.erlang.cookie"
               {{- if .Values.clustering.forceBoot }}
 
-              # Force boot (Mnesia metadata store only, no-op for Khepri)
+              # force_boot only affects the Mnesia metadata store, it is a no-op with Khepri
               if [[ -d "${RABBITMQ_MNESIA_DIR}" ]]; then
                 echo "Executing 'rabbitmqctl force_boot'"
                 rabbitmqctl force_boot || echo "WARNING: 'rabbitmqctl force_boot' failed, continuing"
@@ -293,6 +292,11 @@ spec:
                   - /bin/bash
                   - -c
                   - |
+                    # await_startup exits immediately if the node is not reachable yet, so wait for it first
+                    for i in $(seq 1 60); do
+                      rabbitmq-diagnostics -q ping >/dev/null 2>&1 && break
+                      sleep 5
+                    done
                     if ! rabbitmqctl --quiet await_startup --timeout 300; then
                       echo "WARNING: RabbitMQ did not start in time, skipping postStart actions"
                       exit 0
@@ -301,10 +305,11 @@ spec:
                     if [[ -n "${RABBITMQ_PASSWORD_FILE:-}" ]]; then
                       RABBITMQ_PASSWORD="$(< "${RABBITMQ_PASSWORD_FILE}")"
                     fi
-                    printf '%s' "${RABBITMQ_PASSWORD}" | rabbitmqctl --quiet change_password "${RABBITMQ_USERNAME}" || echo "WARNING: unable to update password"
+                    # change_password hangs when the password is passed via stdin
+                    timeout 60 rabbitmqctl --quiet change_password "${RABBITMQ_USERNAME}" "${RABBITMQ_PASSWORD}" || echo "WARNING: unable to update password"
                     {{- end }}
                     {{- if and .Values.clustering.rebalance (gt (.Values.replicaCount | int) 1) }}
-                    rabbitmq-queues --quiet rebalance all || echo "WARNING: unable to rebalance queues"
+                    timeout 300 rabbitmq-queues --quiet rebalance all || echo "WARNING: unable to rebalance queues"
                     {{- end }}
                     exit 0
             {{- end }}

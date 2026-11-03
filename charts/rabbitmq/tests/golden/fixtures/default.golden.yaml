@@ -13,7 +13,7 @@ metadata:
 type: Opaque
 data:
   rabbitmq.conf: |-
-    IyMgVXNlcm5hbWUgYW5kIHBhc3N3b3JkCmRlZmF1bHRfdXNlciA9IHVzZXIKIyMgQ2x1c3RlcmluZwojIwpjbHVzdGVyX25hbWUgPSBnb2xkZW4tZmlsZS10ZXN0LXJhYmJpdG1xCmNsdXN0ZXJfZm9ybWF0aW9uLnBlZXJfZGlzY292ZXJ5X2JhY2tlbmQgID0gcmFiYml0X3BlZXJfZGlzY292ZXJ5X2s4cwpjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAuaW50ZXJ2YWwgPSAxMApjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAub25seV9sb2dfd2FybmluZyA9IHRydWUKY2x1c3Rlcl9wYXJ0aXRpb25faGFuZGxpbmcgPSBhdXRvaGVhbAoKIyMgUXVldWUgbGVhZGVyIGxvY2F0b3IKcXVldWVfbGVhZGVyX2xvY2F0b3IgPSBiYWxhbmNlZAojIGVuYWJsZSBsb29wYmFjayB1c2VyCmxvb3BiYWNrX3VzZXJzLnVzZXIgPSBmYWxzZQojZGVmYXVsdF92aG9zdCA9IHRlc3QtbmFtZXNwYWNlLXZob3N0CiNkaXNrX2ZyZWVfbGltaXQuYWJzb2x1dGUgPSA1ME1CCiMjIFByb21ldGhldXMgbWV0cmljcwojIwojIyBUQ1AgTGlzdGVuIE9wdGlvbnMKIyMKdGNwX2xpc3Rlbl9vcHRpb25zLmJhY2tsb2cgPSAxMjgKdGNwX2xpc3Rlbl9vcHRpb25zLm5vZGVsYXkgPSB0cnVlCnRjcF9saXN0ZW5fb3B0aW9ucy5saW5nZXIub24gICAgICA9IHRydWUKdGNwX2xpc3Rlbl9vcHRpb25zLmxpbmdlci50aW1lb3V0ID0gMAp0Y3BfbGlzdGVuX29wdGlvbnMua2VlcGFsaXZlID0gZmFsc2U=
+    IyMgVXNlcm5hbWUgYW5kIHBhc3N3b3JkCmRlZmF1bHRfdXNlciA9IHVzZXIKIyMgQ2x1c3RlcmluZwojIwpjbHVzdGVyX25hbWUgPSBnb2xkZW4tZmlsZS10ZXN0LXJhYmJpdG1xCmNsdXN0ZXJfZm9ybWF0aW9uLnBlZXJfZGlzY292ZXJ5X2JhY2tlbmQgID0gcmFiYml0X3BlZXJfZGlzY292ZXJ5X2s4cwpjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAuaW50ZXJ2YWwgPSAxMApjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAub25seV9sb2dfd2FybmluZyA9IHRydWUKY2x1c3Rlcl9wYXJ0aXRpb25faGFuZGxpbmcgPSBhdXRvaGVhbAoKIyBxdWV1ZSBsZWFkZXIgbG9jYXRvcgpxdWV1ZV9sZWFkZXJfbG9jYXRvciA9IGJhbGFuY2VkCiMgZW5hYmxlIGxvb3BiYWNrIHVzZXIKbG9vcGJhY2tfdXNlcnMudXNlciA9IGZhbHNlCiNkZWZhdWx0X3Zob3N0ID0gdGVzdC1uYW1lc3BhY2Utdmhvc3QKI2Rpc2tfZnJlZV9saW1pdC5hYnNvbHV0ZSA9IDUwTUIKIyMgUHJvbWV0aGV1cyBtZXRyaWNzCiMjCiMjIFRDUCBMaXN0ZW4gT3B0aW9ucwojIwp0Y3BfbGlzdGVuX29wdGlvbnMuYmFja2xvZyA9IDEyOAp0Y3BfbGlzdGVuX29wdGlvbnMubm9kZWxheSA9IHRydWUKdGNwX2xpc3Rlbl9vcHRpb25zLmxpbmdlci5vbiAgICAgID0gdHJ1ZQp0Y3BfbGlzdGVuX29wdGlvbnMubGluZ2VyLnRpbWVvdXQgPSAwCnRjcF9saXN0ZW5fb3B0aW9ucy5rZWVwYWxpdmUgPSBmYWxzZQ==
 ---
 # Source: rabbitmq/templates/networkpolicy.yaml
 kind: NetworkPolicy
@@ -161,7 +161,7 @@ spec:
         app.kubernetes.io/name: rabbitmq
         app.kubernetes.io/version: 4.2.9
       annotations:
-        checksum/config: 4f8bfdaf56d2a94fcdd8df46a5dd1f2e5cc1a706f273f8611b7d904bbb5e6e42
+        checksum/config: 8c1e3535104a69f3619deae667bf7392c4d169e9fea2dbd6bb3ec3552001c7ca
         checksum/secret: 618fd82ef4f3b4a37a9455a1ec36e11d9198637b45831dc09eaf6a4516d61ae0
     spec:
       
@@ -228,7 +228,6 @@ spec:
               fi
               echo '[rabbitmq_management,rabbitmq_peer_discovery_k8s,rabbitmq_auth_backend_ldap].' > /etc/rabbitmq/enabled_plugins
 
-              # Default user (only applied when the cluster boots for the first time)
               if [[ -n "${RABBITMQ_PASSWORD_FILE:-}" ]]; then
                 RABBITMQ_PASSWORD="$(< "${RABBITMQ_PASSWORD_FILE}")"
               fi
@@ -238,7 +237,7 @@ spec:
               } > /etc/rabbitmq/conf.d/10-default-user.conf
               chmod 600 /etc/rabbitmq/conf.d/10-default-user.conf
 
-              # Erlang cookie ($HOME=/var/lib/rabbitmq in the official image)
+              # $HOME is /var/lib/rabbitmq in the official image
               if [[ -n "${ERLANG_COOKIE_FILE:-}" ]]; then
                 ERLANG_COOKIE="$(< "${ERLANG_COOKIE_FILE}")"
               fi

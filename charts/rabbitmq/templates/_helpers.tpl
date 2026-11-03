@@ -7,19 +7,12 @@ Return the proper RabbitMQ image name
 {{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global) }}
 {{- end -}}
 
-{{/*
-Return true when the legacy Bitnami image layout is used (image.bitnami=true).
-The official image (docker.io/library/rabbitmq) is used otherwise.
-*/}}
 {{- define "rabbitmq.isBitnami" -}}
 {{- if .Values.image.bitnami -}}
     {{- true -}}
 {{- end -}}
 {{- end -}}
 
-{{/*
-Path where the persistent volume (node data dir base) is mounted.
-*/}}
 {{- define "rabbitmq.persistence.mountPath" -}}
 {{- if .Values.persistence.mountPath -}}
     {{- .Values.persistence.mountPath -}}
@@ -30,9 +23,6 @@ Path where the persistent volume (node data dir base) is mounted.
 {{- end -}}
 {{- end -}}
 
-{{/*
-Directory where TLS certificates (ca_certificate.pem, server_certificate.pem, server_key.pem) are mounted.
-*/}}
 {{- define "rabbitmq.certsDir" -}}
 {{- if (include "rabbitmq.isBitnami" .) -}}
     {{- print "/opt/bitnami/rabbitmq/certs" -}}
@@ -41,9 +31,6 @@ Directory where TLS certificates (ca_certificate.pem, server_certificate.pem, se
 {{- end -}}
 {{- end -}}
 
-{{/*
-Directory where the password / erlang cookie secrets are mounted when usePasswordFiles=true.
-*/}}
 {{- define "rabbitmq.secretsDir" -}}
 {{- if (include "rabbitmq.isBitnami" .) -}}
     {{- print "/opt/bitnami/rabbitmq/secrets" -}}
@@ -52,16 +39,13 @@ Directory where the password / erlang cookie secrets are mounted when usePasswor
 {{- end -}}
 {{- end -}}
 
-{{/*
-Content of the enabled_plugins file for the official image, e.g. [rabbitmq_management,rabbitmq_prometheus].
-*/}}
 {{- define "rabbitmq.enabledPluginsFile" -}}
 {{- $plugins := include "rabbitmq.plugins" . | replace "," " " | splitList " " | compact | uniq -}}
 {{- printf "[%s]." (join "," $plugins) -}}
 {{- end -}}
 
 {{/*
-Common environment variables for the official image (main container and prepare-rabbitmq init container).
+"init" adds the credentials needed only by the prepare-rabbitmq init container.
 Usage: {{ include "rabbitmq.official.env" (dict "init" true "context" $) }}
 */}}
 {{- define "rabbitmq.official.env" -}}
@@ -113,9 +97,6 @@ Usage: {{ include "rabbitmq.official.env" (dict "init" true "context" $) }}
 {{- end }}
 {{- end -}}
 
-{{/*
-Return the proper image name (for the community plugins downloader init container)
-*/}}
 {{- define "rabbitmq.communityPlugins.image" -}}
 {{ include "common.images.image" (dict "imageRoot" .Values.communityPluginsDownloader.image "global" .Values.global) }}
 {{- end -}}
@@ -363,9 +344,6 @@ rabbitmq: auth.tls
 {{- end -}}
 {{- end -}}
 
-{{/*
-Validate values of RabbitMQ - features that only exist in the legacy Bitnami image
-*/}}
 {{- define "rabbitmq.validateValues.officialImage" -}}
 {{- if and (not (include "rabbitmq.isBitnami" .)) (or .Values.initScripts .Values.initScriptsCM .Values.initScriptsSecret) }}
 rabbitmq: initScripts
@@ -378,9 +356,6 @@ rabbitmq: initScripts
 {{- end -}}
 {{- end -}}
 
-{{/*
-Validate values of RabbitMQ - clustering (RabbitMQ >= 4.1 k8s peer discovery)
-*/}}
 {{- define "rabbitmq.validateValues.clustering" -}}
 {{- if and .Values.clustering.enabled (ne .Values.clustering.addressType "hostname") }}
 rabbitmq: clustering.addressType

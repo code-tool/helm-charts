@@ -53,7 +53,6 @@ func TestGoldenDefault(t *testing.T) {
 	})
 }
 
-// official image with clustering, TLS, metrics, community plugins, updatePassword, rebalance
 func TestGoldenOfficial(t *testing.T) {
 	t.Parallel()
 
@@ -77,7 +76,6 @@ func TestGoldenOfficial(t *testing.T) {
 	})
 }
 
-// legacy Bitnami image (image.bitnami=true)
 func TestGoldenBitnami(t *testing.T) {
 	t.Parallel()
 

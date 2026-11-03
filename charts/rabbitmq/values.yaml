@@ -36,10 +36,10 @@ global:
       ##
       adaptSecurityContext: auto
 ## @section RabbitMQ Image parameters
-## Official RabbitMQ image (Docker Official Images)
+## Official RabbitMQ image
 ## ref: https://hub.docker.com/_/rabbitmq
-## Use a "-management" tag (or remove rabbitmq_management from `plugins`), the plain tag does not ship the management plugin.
-## @param image.bitnami Use the legacy Bitnami image layout (/opt/bitnami/...) and its entrypoint scripts. Set to true only with a Bitnami-compatible image (e.g. docker.io/bitnamilegacy/rabbitmq)
+## The plain tag does not enable the management plugin, keep a "-management" tag while rabbitmq_management is in `plugins`.
+## @param image.bitnami Use the legacy Bitnami image layout and entrypoint scripts. Requires a Bitnami-compatible image (e.g. docker.io/bitnamilegacy/rabbitmq)
 ## @param image.registry [default: REGISTRY_NAME] RabbitMQ image registry
 ## @param image.repository [default: REPOSITORY_NAME/rabbitmq] RabbitMQ image repository
 ## @skip image.tag RabbitMQ image tag (immutable tags are recommended)
@@ -49,13 +49,6 @@ global:
 ## @param image.debug Set to true if you would like to see extra information on logs
 ##
 image:
-  ## false - official image docker.io/library/rabbitmq (default)
-  ## true  - legacy Bitnami image (Bitnami stopped publishing public images, see https://github.com/bitnami/containers/issues/83267)
-  ## e.g. for legacy mode:
-  ##   bitnami: true
-  ##   repository: bitnamilegacy/rabbitmq
-  ##   tag: 4.0.9-debian-12-r1
-  ##
   bitnami: false
   registry: docker.io
   repository: library/rabbitmq
@@ -172,7 +165,6 @@ auth:
   ##
   securePassword: true
   ## @param auth.updatePassword Update RabbitMQ password on secret change
-  ## With the official image the password is changed from a postStart hook (`rabbitmqctl change_password`)
   ## ref: https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq#environment-variables
   ##
   updatePassword: false
@@ -238,7 +230,7 @@ auth:
 ## ref: https://www.rabbitmq.com/logging.html#log-file-location
 ##
 logs: "-"
-## @param ulimitNofiles RabbitMQ Max File Descriptors (Bitnami image only; with the official image the limit is inherited from the container runtime)
+## @param ulimitNofiles RabbitMQ Max File Descriptors (Bitnami image only)
 ## ref: https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq#environment-variables
 ## ref: https://www.rabbitmq.com/install-debian.html#kernel-resource-limits
 ##
@@ -277,22 +269,15 @@ plugins: "rabbitmq_management rabbitmq_peer_discovery_k8s"
 ## ref: https://www.rabbitmq.com/docs/clustering#replica-placement
 ##
 queueLeaderLocator: balanced
-## @param queue_master_locator [DEPRECATED] Changes the queue_master_locator setting in the rabbitmq config file
-## `queue_master_locator` is a deprecated feature since RabbitMQ 4.0 (denied by default since 4.3), use `queueLeaderLocator` instead.
-## Left empty by default; when set it is rendered in addition to queue_leader_locator.
+## @param queue_master_locator [DEPRECATED] Changes the queue_master_locator setting in the rabbitmq config file, use `queueLeaderLocator` instead
 ##
 queue_master_locator: ""
 
 ## @param communityPlugins List of Community plugins (URLs, space-separated) to be downloaded during container initialization
 ## Combine it with extraPlugins to also enable them.
-## With the official image the files are downloaded by an init container (see `communityPluginsDownloader`)
-## e.g:
-## communityPlugins: "https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/v4.2.0/rabbitmq_delayed_message_exchange-4.2.0.ez"
-## extraPlugins: "rabbitmq_delayed_message_exchange"
 ##
 communityPlugins: ""
-## Init container used to download `communityPlugins` when the official image is used
-## (the official image ships neither curl nor wget)
+## Downloads `communityPlugins` for the official image, which ships neither curl nor wget
 ## @param communityPluginsDownloader.image.registry Downloader image registry
 ## @param communityPluginsDownloader.image.repository Downloader image repository
 ## @param communityPluginsDownloader.image.tag Downloader image tag
@@ -476,7 +461,7 @@ configuration: |-
   cluster_name = {{ default (include "common.names.fullname" .) .Values.clustering.name }}
   cluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s
   {{- if .Values.image.bitnami }}
-  ## Settings used by the pre-4.1 k8s peer discovery plugin (ignored with a warning by 4.1+)
+  ## Only used by the pre-4.1 k8s peer discovery plugin, 4.1+ ignores them with a warning
   cluster_formation.k8s.host = kubernetes.default
   cluster_formation.k8s.address_type = {{ .Values.clustering.addressType }}
   {{- $svcName := printf "%s-%s" (include "common.names.fullname" .) (default "headless" .Values.servicenameOverride) }}
@@ -493,7 +478,7 @@ configuration: |-
   {{- if .Values.loadDefinition.enabled }}
   load_definitions = {{ .Values.loadDefinition.file }}
   {{- end }}
-  ## Queue leader locator
+  # queue leader locator
   queue_leader_locator = {{ .Values.queueLeaderLocator }}
   {{- if .Values.queue_master_locator }}
   queue_master_locator = {{ .Values.queue_master_locator }}
@@ -829,9 +814,8 @@ podSecurityContext:
   fsGroupChangePolicy: Always
   sysctls: []
   supplementalGroups: []
-  ## NOTE: the official image runs as rabbitmq (999:999) by default, but every writable path is an emptyDir/PVC,
-  ## so it works with any UID. 1001 is kept to stay compatible with volumes created by the Bitnami image.
-  ##
+  ## 1001 instead of the official image's 999 keeps volumes created by the Bitnami image writable.
+  ## Any UID works because every writable path is an emptyDir or PVC.
   fsGroup: 1001
 ## @param containerSecurityContext.enabled Enabled RabbitMQ containers' Security Context
 ## @param containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in container
@@ -1045,8 +1029,7 @@ persistence:
   ## So, for example, the name can depend on .Release or .Chart
   ##
   existingClaim: ""
-  ## @param persistence.mountPath The path the volume will be mounted at (node data directories live in <mountPath>/<node name>)
-  ## Defaults to /var/lib/rabbitmq/mnesia (official image) or /opt/bitnami/rabbitmq/.rabbitmq/mnesia (image.bitnami=true)
+  ## @param persistence.mountPath The path the volume will be mounted at. Empty: /var/lib/rabbitmq/mnesia (official) or /opt/bitnami/rabbitmq/.rabbitmq/mnesia (Bitnami)
   ## Note: useful when using custom RabbitMQ images
   ##
   mountPath: ""
