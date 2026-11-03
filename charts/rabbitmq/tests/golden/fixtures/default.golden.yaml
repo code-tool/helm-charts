@@ -9,11 +9,11 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 type: Opaque
 data:
   rabbitmq.conf: |-
-    IyMgVXNlcm5hbWUgYW5kIHBhc3N3b3JkCmRlZmF1bHRfdXNlciA9IHVzZXIKIyMgQ2x1c3RlcmluZwojIwpjbHVzdGVyX25hbWUgPSBnb2xkZW4tZmlsZS10ZXN0LXJhYmJpdG1xCmNsdXN0ZXJfZm9ybWF0aW9uLnBlZXJfZGlzY292ZXJ5X2JhY2tlbmQgID0gcmFiYml0X3BlZXJfZGlzY292ZXJ5X2s4cwpjbHVzdGVyX2Zvcm1hdGlvbi5rOHMuaG9zdCA9IGt1YmVybmV0ZXMuZGVmYXVsdApjbHVzdGVyX2Zvcm1hdGlvbi5rOHMuYWRkcmVzc190eXBlID0gaG9zdG5hbWUKY2x1c3Rlcl9mb3JtYXRpb24uazhzLnNlcnZpY2VfbmFtZSA9IGdvbGRlbi1maWxlLXRlc3QtcmFiYml0bXEtaGVhZGxlc3MKY2x1c3Rlcl9mb3JtYXRpb24uazhzLmhvc3RuYW1lX3N1ZmZpeCA9IC5nb2xkZW4tZmlsZS10ZXN0LXJhYmJpdG1xLWhlYWRsZXNzLnRlc3QtbmFtZXNwYWNlLnN2Yy5jbHVzdGVyLmxvY2FsCmNsdXN0ZXJfZm9ybWF0aW9uLm5vZGVfY2xlYW51cC5pbnRlcnZhbCA9IDEwCmNsdXN0ZXJfZm9ybWF0aW9uLm5vZGVfY2xlYW51cC5vbmx5X2xvZ193YXJuaW5nID0gdHJ1ZQpjbHVzdGVyX3BhcnRpdGlvbl9oYW5kbGluZyA9IGF1dG9oZWFsCgojIHF1ZXVlIG1hc3RlciBsb2NhdG9yCnF1ZXVlX21hc3Rlcl9sb2NhdG9yID0gbWluLW1hc3RlcnMKIyBlbmFibGUgbG9vcGJhY2sgdXNlcgpsb29wYmFja191c2Vycy51c2VyID0gZmFsc2UKI2RlZmF1bHRfdmhvc3QgPSB0ZXN0LW5hbWVzcGFjZS12aG9zdAojZGlza19mcmVlX2xpbWl0LmFic29sdXRlID0gNTBNQgojIyBQcm9tZXRoZXVzIG1ldHJpY3MKIyMKcHJvbWV0aGV1cy50Y3AucG9ydCA9IDk0MTkKIyMgVENQIExpc3RlbiBPcHRpb25zCiMjCnRjcF9saXN0ZW5fb3B0aW9ucy5iYWNrbG9nID0gMTI4CnRjcF9saXN0ZW5fb3B0aW9ucy5ub2RlbGF5ID0gdHJ1ZQp0Y3BfbGlzdGVuX29wdGlvbnMubGluZ2VyLm9uICAgICAgPSB0cnVlCnRjcF9saXN0ZW5fb3B0aW9ucy5saW5nZXIudGltZW91dCA9IDAKdGNwX2xpc3Rlbl9vcHRpb25zLmtlZXBhbGl2ZSA9IGZhbHNl
+    IyMgVXNlcm5hbWUgYW5kIHBhc3N3b3JkCmRlZmF1bHRfdXNlciA9IHVzZXIKIyMgQ2x1c3RlcmluZwojIwpjbHVzdGVyX25hbWUgPSBnb2xkZW4tZmlsZS10ZXN0LXJhYmJpdG1xCmNsdXN0ZXJfZm9ybWF0aW9uLnBlZXJfZGlzY292ZXJ5X2JhY2tlbmQgID0gcmFiYml0X3BlZXJfZGlzY292ZXJ5X2s4cwpjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAuaW50ZXJ2YWwgPSAxMApjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAub25seV9sb2dfd2FybmluZyA9IHRydWUKY2x1c3Rlcl9wYXJ0aXRpb25faGFuZGxpbmcgPSBhdXRvaGVhbAoKIyBxdWV1ZSBsZWFkZXIgbG9jYXRvcgpxdWV1ZV9sZWFkZXJfbG9jYXRvciA9IGJhbGFuY2VkCiMgZW5hYmxlIGxvb3BiYWNrIHVzZXIKbG9vcGJhY2tfdXNlcnMudXNlciA9IGZhbHNlCiNkZWZhdWx0X3Zob3N0ID0gdGVzdC1uYW1lc3BhY2Utdmhvc3QKI2Rpc2tfZnJlZV9saW1pdC5hYnNvbHV0ZSA9IDUwTUIKIyMgUHJvbWV0aGV1cyBtZXRyaWNzCiMjCiMjIFRDUCBMaXN0ZW4gT3B0aW9ucwojIwp0Y3BfbGlzdGVuX29wdGlvbnMuYmFja2xvZyA9IDEyOAp0Y3BfbGlzdGVuX29wdGlvbnMubm9kZWxheSA9IHRydWUKdGNwX2xpc3Rlbl9vcHRpb25zLmxpbmdlci5vbiAgICAgID0gdHJ1ZQp0Y3BfbGlzdGVuX29wdGlvbnMubGluZ2VyLnRpbWVvdXQgPSAwCnRjcF9saXN0ZW5fb3B0aW9ucy5rZWVwYWxpdmUgPSBmYWxzZQ==
 ---
 # Source: rabbitmq/templates/networkpolicy.yaml
 kind: NetworkPolicy
@@ -25,7 +25,7 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 spec:
   podSelector:
     matchLabels:
@@ -55,7 +55,7 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 spec:
   maxUnavailable: 1
   selector:
@@ -73,7 +73,7 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 subjects:
   - kind: ServiceAccount
     name: golden-file-test-rabbitmq
@@ -92,7 +92,7 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 rules:
   - apiGroups: [""]
     resources: ["endpoints"]
@@ -111,11 +111,11 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 type: Opaque
 data:
-  rabbitmq-password: "S3ZOa0xZYld4bUNJUGE2Ug=="
-  rabbitmq-erlang-cookie: "WVhGTFdDRHFqSzN3UFlnVHh5U3VaNTNENmg0aHhua0s="
+  rabbitmq-password: "Z29sZGVuLXBhc3N3b3Jk"
+  rabbitmq-erlang-cookie: "Z29sZGVuLWVybGFuZy1jb29raWU="
 ---
 # Source: rabbitmq/templates/serviceaccount.yaml
 apiVersion: v1
@@ -127,7 +127,7 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 automountServiceAccountToken: false
 secrets:
   - name: golden-file-test-rabbitmq
@@ -142,7 +142,7 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 spec:
   serviceName: golden-file-test-rabbitmq-headless
   podManagementPolicy: OrderedReady
@@ -159,10 +159,10 @@ spec:
         app.kubernetes.io/instance: golden-file-test
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/name: rabbitmq
-        app.kubernetes.io/version: 4.0.9
+        app.kubernetes.io/version: 4.2.9
       annotations:
-        checksum/config: 59f9e391321077bceea3937a72be437e304f3b8f7cc26f6065b98527ad38f539
-        checksum/secret: 73f2829c48db8154844d824d2461c5f7b1f911debfc693b516ca67e3944b3317
+        checksum/config: 8c1e3535104a69f3619deae667bf7392c4d169e9fea2dbd6bb3ec3552001c7ca
+        checksum/secret: 618fd82ef4f3b4a37a9455a1ec36e11d9198637b45831dc09eaf6a4516d61ae0
     spec:
       
       serviceAccountName: golden-file-test-rabbitmq
@@ -189,8 +189,8 @@ spec:
       terminationGracePeriodSeconds: 120
       enableServiceLinks: true
       initContainers:
-        - name: prepare-plugins-dir
-          image: docker.io/bitnami/rabbitmq:4.0.9-debian-12-r1
+        - name: prepare-rabbitmq
+          image: docker.io/library/rabbitmq:4.2.9-management
           imagePullPolicy: "IfNotPresent"
           resources:
             limits:
@@ -218,20 +218,76 @@ spec:
           args:
             - -ec
             - |
-              #!/bin/bash
+              echo "Rendering RabbitMQ configuration into /etc/rabbitmq"
+              mkdir -p /etc/rabbitmq/conf.d
+              if [[ -f /rabbitmq-config/rabbitmq.conf ]]; then
+                cp /rabbitmq-config/rabbitmq.conf /etc/rabbitmq/rabbitmq.conf
+              fi
+              if [[ -f /rabbitmq-config/advanced.config ]]; then
+                cp /rabbitmq-config/advanced.config /etc/rabbitmq/advanced.config
+              fi
+              echo '[rabbitmq_management,rabbitmq_peer_discovery_k8s,rabbitmq_auth_backend_ldap].' > /etc/rabbitmq/enabled_plugins
 
-              . /opt/bitnami/scripts/liblog.sh
+              if [[ -n "${RABBITMQ_PASSWORD_FILE:-}" ]]; then
+                RABBITMQ_PASSWORD="$(< "${RABBITMQ_PASSWORD_FILE}")"
+              fi
+              {
+                echo "default_user = ${RABBITMQ_USERNAME}"
+                echo "default_pass = ${RABBITMQ_PASSWORD}"
+              } > /etc/rabbitmq/conf.d/10-default-user.conf
+              chmod 600 /etc/rabbitmq/conf.d/10-default-user.conf
 
-              info "Copying plugins dir to empty dir"
-              # In order to not break the possibility of installing custom plugins, we need
-              # to make the plugins directory writable, so we need to copy it to an empty dir volume
-              cp -r --preserve=mode /opt/bitnami/rabbitmq/plugins/ /emptydir/app-plugins-dir
+              # $HOME is /var/lib/rabbitmq in the official image
+              if [[ -n "${ERLANG_COOKIE_FILE:-}" ]]; then
+                ERLANG_COOKIE="$(< "${ERLANG_COOKIE_FILE}")"
+              fi
+              rm -f "${HOME}/.erlang.cookie"
+              printf '%s' "${ERLANG_COOKIE}" > "${HOME}/.erlang.cookie"
+              chmod 400 "${HOME}/.erlang.cookie"
+          env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RABBITMQ_NODENAME
+              value: "rabbit@$(MY_POD_NAME).golden-file-test-rabbitmq-headless.$(MY_POD_NAMESPACE).svc.cluster.local"
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+            - name: RABBITMQ_MNESIA_DIR
+              value: "/var/lib/rabbitmq/mnesia/$(RABBITMQ_NODENAME)"
+            - name: RABBITMQ_USERNAME
+              value: "user"
+            - name: RABBITMQ_PASSWORD_FILE
+              value: /etc/rabbitmq-secrets/rabbitmq-password
+            - name: ERLANG_COOKIE_FILE
+              value: /etc/rabbitmq-secrets/rabbitmq-erlang-cookie
           volumeMounts:
+            - name: configuration
+              mountPath: /rabbitmq-config
             - name: empty-dir
-              mountPath: /emptydir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /etc/rabbitmq
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /var/lib/rabbitmq
+              subPath: app-home-dir
+            - name: data
+              mountPath: /var/lib/rabbitmq/mnesia
+            - name: rabbitmq-secrets
+              mountPath: /etc/rabbitmq-secrets
       containers:
         - name: rabbitmq
-          image: docker.io/bitnami/rabbitmq:4.0.9-debian-12-r1
+          image: docker.io/library/rabbitmq:4.2.9-management
           imagePullPolicy: "IfNotPresent"
           securityContext:
             allowPrivilegeEscalation: false
@@ -252,14 +308,8 @@ spec:
                   - /bin/bash
                   - -ec
                   - |
-                    if [[ -f /opt/bitnami/scripts/rabbitmq/nodeshutdown.sh ]]; then
-                        /opt/bitnami/scripts/rabbitmq/nodeshutdown.sh -t "120" -d "false"
-                    else
-                        rabbitmqctl stop_app
-                    fi
+                    rabbitmqctl --quiet stop_app || true
           env:
-            - name: BITNAMI_DEBUG
-              value: "false"
             - name: MY_POD_IP
               valueFrom:
                 fieldRef:
@@ -272,36 +322,16 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: RABBITMQ_FORCE_BOOT
-              value: "no"
-            - name: RABBITMQ_NODE_NAME
+            - name: RABBITMQ_NODENAME
               value: "rabbit@$(MY_POD_NAME).golden-file-test-rabbitmq-headless.$(MY_POD_NAMESPACE).svc.cluster.local"
-            - name: RABBITMQ_UPDATE_PASSWORD
-              value: "no"
-            - name: RABBITMQ_MNESIA_DIR
-              value: "/opt/bitnami/rabbitmq/.rabbitmq/mnesia/$(RABBITMQ_NODE_NAME)"
-            - name: RABBITMQ_LDAP_ENABLE
-              value: "no"
-            - name: RABBITMQ_LOGS
-              value: "-"
-            - name: RABBITMQ_ULIMIT_NOFILES
-              value: "65535"
             - name: RABBITMQ_USE_LONGNAME
               value: "true"
-            - name: RABBITMQ_ERL_COOKIE_FILE
-              value: /opt/bitnami/rabbitmq/secrets/rabbitmq-erlang-cookie
-            - name: RABBITMQ_LOAD_DEFINITIONS
-              value: "no"
-            - name: RABBITMQ_DEFINITIONS_FILE
-              value: "/app/load_definition.json"
-            - name: RABBITMQ_SECURE_PASSWORD
-              value: "yes"
-            - name: RABBITMQ_USERNAME
-              value: "user"
-            - name: RABBITMQ_PASSWORD_FILE
-              value: /opt/bitnami/rabbitmq/secrets/rabbitmq-password
-            - name: RABBITMQ_PLUGINS
-              value: "rabbitmq_management, rabbitmq_peer_discovery_k8s, rabbitmq_auth_backend_ldap"
+            - name: RABBITMQ_MNESIA_DIR
+              value: "/var/lib/rabbitmq/mnesia/$(RABBITMQ_NODENAME)"
+            - name: RABBITMQ_LOGS
+              value: "-"
+            - name: ERL_CRASH_DUMP
+              value: "/var/log/rabbitmq/erl_crash.dump"
           envFrom:
           ports:
             - name: amqp
@@ -324,7 +354,7 @@ spec:
               command:
                 - /bin/bash
                 - -ec
-                - curl -f --user user:$(< $RABBITMQ_PASSWORD_FILE) 127.0.0.1:15672/api/health/checks/virtual-hosts
+                - rabbitmq-diagnostics -q ping
           readinessProbe:
             failureThreshold: 3
             initialDelaySeconds: 10
@@ -335,7 +365,7 @@ spec:
               command:
                 - /bin/bash
                 - -ec
-                - curl -f --user user:$(< $RABBITMQ_PASSWORD_FILE) 127.0.0.1:15672/api/health/checks/local-alarms
+                - rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms
           resources:
             limits:
               cpu: 375m
@@ -346,30 +376,22 @@ spec:
               ephemeral-storage: 50Mi
               memory: 256Mi
           volumeMounts:
-            - name: configuration
-              mountPath: /bitnami/rabbitmq/conf
             - name: empty-dir
               mountPath: /tmp
               subPath: tmp-dir
             - name: empty-dir
-              mountPath: /opt/bitnami/rabbitmq/etc/rabbitmq
+              mountPath: /etc/rabbitmq
               subPath: app-conf-dir
             - name: empty-dir
-              mountPath: /opt/bitnami/rabbitmq/var/lib/rabbitmq
-              subPath: app-tmp-dir
+              mountPath: /var/lib/rabbitmq
+              subPath: app-home-dir
             - name: empty-dir
-              mountPath: /opt/bitnami/rabbitmq/.rabbitmq/
-              subPath: app-erlang-cookie
-            - name: empty-dir
-              mountPath: /opt/bitnami/rabbitmq/var/log/rabbitmq
+              mountPath: /var/log/rabbitmq
               subPath: app-logs-dir
-            - name: empty-dir
-              mountPath: /opt/bitnami/rabbitmq/plugins
-              subPath: app-plugins-dir
             - name: data
-              mountPath: /opt/bitnami/rabbitmq/.rabbitmq/mnesia
+              mountPath: /var/lib/rabbitmq/mnesia
             - name: rabbitmq-secrets
-              mountPath: /opt/bitnami/rabbitmq/secrets
+              mountPath: /etc/rabbitmq-secrets
       volumes:
         - name: empty-dir
           emptyDir: {}
@@ -411,7 +433,7 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 spec:
   clusterIP: None
   ports:
@@ -443,7 +465,7 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 spec:
   type: ClusterIP
   sessionAffinity: None

@@ -1,0 +1,8 @@
+image:
+  bitnami: true
+  registry: docker.io
+  repository: bitnamilegacy/rabbitmq
+  tag: 4.0.9-debian-12-r1
+auth:
+  password: "golden-password"
+  erlangCookie: "golden-erlang-cookie"

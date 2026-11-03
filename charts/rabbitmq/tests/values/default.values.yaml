@@ -1,1 +1,3 @@
-#
+auth:
+  password: "golden-password"
+  erlangCookie: "golden-erlang-cookie"

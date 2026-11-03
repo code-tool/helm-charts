@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: golden-file-test
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/name: rabbitmq
-    app.kubernetes.io/version: 4.0.9
+    app.kubernetes.io/version: 4.2.9
 spec:
   parentRefs:
     - name: my-gateway

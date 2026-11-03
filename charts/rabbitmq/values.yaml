@@ -36,8 +36,10 @@ global:
       ##
       adaptSecurityContext: auto
 ## @section RabbitMQ Image parameters
-## Bitnami RabbitMQ image version
-## ref: https://hub.docker.com/r/bitnami/rabbitmq/tags/
+## Official RabbitMQ image
+## ref: https://hub.docker.com/_/rabbitmq
+## The plain tag does not enable the management plugin, keep a "-management" tag while rabbitmq_management is in `plugins`.
+## @param image.bitnami Use the legacy Bitnami image layout and entrypoint scripts. Requires a Bitnami-compatible image (e.g. docker.io/bitnamilegacy/rabbitmq)
 ## @param image.registry [default: REGISTRY_NAME] RabbitMQ image registry
 ## @param image.repository [default: REPOSITORY_NAME/rabbitmq] RabbitMQ image repository
 ## @skip image.tag RabbitMQ image tag (immutable tags are recommended)
@@ -47,12 +49,13 @@ global:
 ## @param image.debug Set to true if you would like to see extra information on logs
 ##
 image:
+  bitnami: false
   registry: docker.io
-  repository: bitnami/rabbitmq
-  tag: 4.0.9-debian-12-r1
+  repository: library/rabbitmq
+  tag: 4.2.9-management
   digest: ""
   ## set to true if you would like to see extra information on logs
-  ## It turns BASH and/or NAMI debugging in the image
+  ## It turns BASH and/or NAMI debugging in the image (Bitnami image only)
   ##
   debug: false
   ## Specify a imagePullPolicy
@@ -227,7 +230,7 @@ auth:
 ## ref: https://www.rabbitmq.com/logging.html#log-file-location
 ##
 logs: "-"
-## @param ulimitNofiles RabbitMQ Max File Descriptors
+## @param ulimitNofiles RabbitMQ Max File Descriptors (Bitnami image only)
 ## ref: https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq#environment-variables
 ## ref: https://www.rabbitmq.com/install-debian.html#kernel-resource-limits
 ##
@@ -262,14 +265,38 @@ memoryHighWatermark:
 ##
 plugins: "rabbitmq_management rabbitmq_peer_discovery_k8s"
 
-## @param queue_master_locator Changes the queue_master_locator setting in the rabbitmq config file
+## @param queueLeaderLocator Changes the queue_leader_locator setting in the rabbitmq config file (`client-local` or `balanced`)
+## ref: https://www.rabbitmq.com/docs/clustering#replica-placement
 ##
-queue_master_locator: min-masters
+queueLeaderLocator: balanced
+## @param queue_master_locator [DEPRECATED] Changes the queue_master_locator setting in the rabbitmq config file, use `queueLeaderLocator` instead
+##
+queue_master_locator: ""
 
-## @param communityPlugins List of Community plugins (URLs) to be downloaded during container initialization
+## @param communityPlugins List of Community plugins (URLs, space-separated) to be downloaded during container initialization
 ## Combine it with extraPlugins to also enable them.
 ##
 communityPlugins: ""
+## Downloads `communityPlugins` for the official image, which ships neither curl nor wget
+## @param communityPluginsDownloader.image.registry Downloader image registry
+## @param communityPluginsDownloader.image.repository Downloader image repository
+## @param communityPluginsDownloader.image.tag Downloader image tag
+## @param communityPluginsDownloader.image.digest Downloader image digest
+## @param communityPluginsDownloader.image.pullPolicy Downloader image pull policy
+## @param communityPluginsDownloader.image.pullSecrets Downloader image pull secrets
+## @param communityPluginsDownloader.resourcesPreset Downloader resources preset
+## @param communityPluginsDownloader.resources Downloader resources
+##
+communityPluginsDownloader:
+  image:
+    registry: docker.io
+    repository: curlimages/curl
+    tag: 8.23.0
+    digest: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  resourcesPreset: "nano"
+  resources: {}
 ## @param extraPlugins Extra plugins to enable (single string containing a space-separated list)
 ## Use this instead of `plugins` to add new plugins
 ##
@@ -284,7 +311,8 @@ clustering:
   ## If not set, a name is generated using the common.names.fullname template
   ##
   name: ""
-  ## @param clustering.addressType Switch clustering mode. Either `ip` or `hostname`
+  ## @param clustering.addressType Switch clustering mode. Only `hostname` is supported since RabbitMQ 4.1
+  ## ref: https://www.rabbitmq.com/blog/2025/04/04/new-k8s-peer-discovery
   ##
   addressType: hostname
   ## @param clustering.rebalance Rebalance master for queues in cluster when new replica is created
@@ -367,7 +395,7 @@ hostPorts:
   manager: ""
   metrics: ""
 
-## @param initScripts Dictionary of init scripts. Evaluated as a template.
+## @param initScripts Dictionary of init scripts. Evaluated as a template. Bitnami image only (image.bitnami=true).
 ## Specify dictionary of scripts to be run at first boot
 ## Alternatively, you can put your scripts under the files/docker-entrypoint-initdb.d directory
 ## For example:
@@ -432,11 +460,14 @@ configuration: |-
   ##
   cluster_name = {{ default (include "common.names.fullname" .) .Values.clustering.name }}
   cluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s
+  {{- if .Values.image.bitnami }}
+  ## Only used by the pre-4.1 k8s peer discovery plugin, 4.1+ ignores them with a warning
   cluster_formation.k8s.host = kubernetes.default
   cluster_formation.k8s.address_type = {{ .Values.clustering.addressType }}
   {{- $svcName := printf "%s-%s" (include "common.names.fullname" .) (default "headless" .Values.servicenameOverride) }}
   cluster_formation.k8s.service_name = {{ $svcName }}
   cluster_formation.k8s.hostname_suffix = .{{ $svcName }}.{{ include "common.names.namespace" . }}.svc.{{ .Values.clusterDomain }}
+  {{- end }}
   cluster_formation.node_cleanup.interval = 10
   cluster_formation.node_cleanup.only_log_warning = true
   cluster_partition_handling = {{ .Values.clustering.partitionHandling }}
@@ -447,8 +478,11 @@ configuration: |-
   {{- if .Values.loadDefinition.enabled }}
   load_definitions = {{ .Values.loadDefinition.file }}
   {{- end }}
-  # queue master locator
+  # queue leader locator
+  queue_leader_locator = {{ .Values.queueLeaderLocator }}
+  {{- if .Values.queue_master_locator }}
   queue_master_locator = {{ .Values.queue_master_locator }}
+  {{- end }}
   # enable loopback user
   {{- if not (empty .Values.auth.username) }}
   loopback_users.{{ .Values.auth.username }} = {{ .Values.auth.enableLoopbackUser }}
@@ -460,9 +494,9 @@ configuration: |-
   ssl_options.verify = {{ .Values.auth.tls.sslOptionsVerify }}
   listeners.ssl.default = {{ .Values.service.ports.amqpTls }}
   ssl_options.fail_if_no_peer_cert = {{ .Values.auth.tls.failIfNoPeerCert }}
-  ssl_options.cacertfile = /opt/bitnami/rabbitmq/certs/ca_certificate.pem
-  ssl_options.certfile = /opt/bitnami/rabbitmq/certs/server_certificate.pem
-  ssl_options.keyfile = /opt/bitnami/rabbitmq/certs/server_key.pem
+  ssl_options.cacertfile = {{ include "rabbitmq.certsDir" . }}/ca_certificate.pem
+  ssl_options.certfile = {{ include "rabbitmq.certsDir" . }}/server_certificate.pem
+  ssl_options.keyfile = {{ include "rabbitmq.certsDir" . }}/server_key.pem
   {{- if .Values.auth.tls.sslOptionsPassword.enabled }}
   ssl_options.password = {{ include "common.secrets.passwords.manage" (dict "secret" .Values.auth.tls.sslOptionsPassword.existingSecret "key" .Values.auth.tls.sslOptionsPassword.key "providedValues" (list "auth.tls.sslOptionsPassword.password") "skipB64enc" true "failOnNew" false "context" $) }}
   {{- end }}
@@ -517,7 +551,9 @@ configuration: |-
   {{- end }}
   ## Prometheus metrics
   ##
+  {{- if contains "rabbitmq_prometheus" (include "rabbitmq.plugins" .) }}
   prometheus.tcp.port = {{ .Values.containerPorts.metrics }}
+  {{- end }}
   {{- if .Values.memoryHighWatermark.enabled }}
   ## Memory Threshold
   ##
@@ -778,6 +814,8 @@ podSecurityContext:
   fsGroupChangePolicy: Always
   sysctls: []
   supplementalGroups: []
+  ## 1001 instead of the official image's 999 keeps volumes created by the Bitnami image writable.
+  ## Any UID works because every writable path is an emptyDir or PVC.
   fsGroup: 1001
 ## @param containerSecurityContext.enabled Enabled RabbitMQ containers' Security Context
 ## @param containerSecurityContext.seLinuxOptions [object,nullable] Set SELinux options in container
@@ -991,10 +1029,10 @@ persistence:
   ## So, for example, the name can depend on .Release or .Chart
   ##
   existingClaim: ""
-  ## @param persistence.mountPath The path the volume will be mounted at
+  ## @param persistence.mountPath The path the volume will be mounted at. Empty: /var/lib/rabbitmq/mnesia (official) or /opt/bitnami/rabbitmq/.rabbitmq/mnesia (Bitnami)
   ## Note: useful when using custom RabbitMQ images
   ##
-  mountPath: /opt/bitnami/rabbitmq/.rabbitmq/mnesia
+  mountPath: ""
   ## @param persistence.subPath The subdirectory of the volume to mount to
   ## Useful in dev environments and one PV for multiple services
   ##
@@ -1622,7 +1660,7 @@ volumePermissions:
   ##
   enabled: false
   ## @param volumePermissions.image.registry [default: REGISTRY_NAME] Init container volume-permissions image registry
-  ## @param volumePermissions.image.repository [default: REPOSITORY_NAME/os-shell] Init container volume-permissions image repository
+  ## @param volumePermissions.image.repository Init container volume-permissions image repository (any image with /bin/sh, find, xargs, chown)
   ## @skip volumePermissions.image.tag Init container volume-permissions image tag
   ## @param volumePermissions.image.digest Init container volume-permissions image digest in the way sha256:aa.... Please note this parameter, if set, will override the tag
   ## @param volumePermissions.image.pullPolicy Init container volume-permissions image pull policy
@@ -1630,8 +1668,8 @@ volumePermissions:
   ##
   image:
     registry: docker.io
-    repository: bitnami/os-shell
-    tag: 12-debian-12-r42
+    repository: library/busybox
+    tag: 1.37.0
     digest: ""
     ## Specify a imagePullPolicy
     ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
