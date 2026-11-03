@@ -421,6 +421,7 @@ spec:
         resources:
           requests:
             storage: "8Gi"
+
 ---
 # Source: rabbitmq/templates/svc-headless.yaml
 apiVersion: v1
