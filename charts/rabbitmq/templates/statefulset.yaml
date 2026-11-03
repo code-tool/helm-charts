@@ -320,8 +320,10 @@ spec:
                   - -ec
                   - |
                     {{- if gt (.Values.replicaCount | int) 1 }}
+                    {{- $awaitTimeout := max 10 (sub (.Values.terminationGracePeriodSeconds | int) 30) }}
                     # Do not stop the node while it is required to keep quorum queues / streams available
-                    rabbitmq-upgrade --quiet await_online_quorum_plus_one -t {{ .Values.terminationGracePeriodSeconds }} || true
+                    # Leave 30s of terminationGracePeriodSeconds for a graceful stop_app / SIGTERM shutdown.
+                    rabbitmq-upgrade --quiet await_online_quorum_plus_one -t {{ $awaitTimeout }} || true
                     {{- end }}
                     rabbitmqctl --quiet stop_app || true
           {{- else }}

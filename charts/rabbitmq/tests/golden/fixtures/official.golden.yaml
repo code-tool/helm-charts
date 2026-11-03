@@ -311,7 +311,8 @@ spec:
                   - -ec
                   - |
                     # Do not stop the node while it is required to keep quorum queues / streams available
-                    rabbitmq-upgrade --quiet await_online_quorum_plus_one -t 120 || true
+                    # Leave 30s of terminationGracePeriodSeconds for a graceful stop_app / SIGTERM shutdown.
+                    rabbitmq-upgrade --quiet await_online_quorum_plus_one -t 90 || true
                     rabbitmqctl --quiet stop_app || true
           env:
             - name: MY_POD_IP
