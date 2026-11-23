@@ -112,6 +112,21 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/external-dns-0.0.3/external-dns-0.0.3.tgz
     version: 0.0.3
+  karma:
+  - apiVersion: v2
+    appVersion: v0.134
+    created: "2026-11-23T14:39:13.487646712Z"
+    description: A Helm chart for Karma - an UI for Prometheus Alertmanager
+    digest: e17dd943587b4242d0de748ba88ff28e12e34b5c5a2dcece11b79361becb2339
+    home: https://github.com/prymitive/karma
+    kubeVersion: '>= 1.19-0'
+    name: karma
+    sources:
+    - https://github.com/prymitive/karma
+    type: application
+    urls:
+    - https://github.com/code-tool/helm-charts/releases/download/karma-0.2.0/karma-0.2.0.tgz
+    version: 0.2.0
   local-path-provisioner:
   - apiVersion: v1
     appVersion: v0.0.32
@@ -457,4 +472,4 @@ entries:
     urls:
     - https://github.com/code-tool/helm-charts/releases/download/redis-0.0.1/redis-0.0.1.tgz
     version: 0.0.1
-generated: "2026-11-03T13:26:33.961190904Z"
+generated: "2026-11-23T14:39:13.487686515Z"
