@@ -1,0 +1,10 @@
+apiVersion: v2
+type: application
+description: A Helm chart for Karma - an UI for Prometheus Alertmanager
+name: karma
+home: https://github.com/prymitive/karma
+sources:
+  - https://github.com/prymitive/karma
+version: 0.2.0
+kubeVersion: ">= 1.19-0"
+appVersion: "v0.134"

@@ -1,0 +1,271 @@
+# Default values for karma.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Number of replicas
+replicaCount: 1
+revisionHistoryLimit: 3
+
+image:
+  ## The image to run
+  repository: ghcr.io/prymitive/karma
+  ## The image tag to pull
+  ## Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# Override (full)name of app
+nameOverride: ""
+fullnameOverride: ""
+
+# env:
+# - name: ALERTMANAGER_URI
+#   value: http://monitoring-prometheus-alertmanager
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: http
+  loadBalancerSourceRanges: []
+  annotations:
+    {}
+    # prometheus.io/scrape: "true"
+  labels: {}
+
+serviceAccount:
+  ## Specifies whether a ServiceAccount should be created
+  create: true
+  ## The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the fullname template
+  name: ""
+  # Automount API credentials for the Service Account
+  automountServiceAccountToken: false
+  # ImagePullSecrets
+  imagePullSecrets: []
+  annotations: {}
+
+# Gateway API HTTPRoute (the only way to expose karma outside the cluster)
+httpRoute:
+  enabled: false
+  apiVersion: "gateway.networking.k8s.io/v1"
+  # Gateway(s) to bind the route to; required when enabled
+  parentRefs: []
+  # - name: envoy-gateway-infra
+  #   namespace: envoy-gateway
+  #   sectionName: https
+  # required when enabled; values are passed through tpl
+  hostnames: []
+  # - karma.example.com
+  # route metadata; annotation values are passed through tpl
+  # e.g. external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
+  annotations: {}
+  labels: {}
+  # path prefix of the default rule
+  path: /
+  # filters / timeouts of the default rule
+  filters: []
+  timeouts: {}
+  # request: 60s
+  # extra rules rendered before the default rule
+  extraRules: []
+
+deployment:
+  annotations: {}
+
+serviceMonitor:
+  enabled: false
+  interval: 15s
+  additionalLabels:
+    {}
+  annotations:
+    {}
+  metricRelabelings:
+    []
+  relabelings:
+    []
+
+resources:
+  {}
+  ## We usually recommend not to specify default resources and to leave this as a conscious
+  ## choice for the user. This also increases chances charts run on environments with little
+  ## resources, such as Minikube. If you do want to specify resources, uncomment the following
+  ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+## Labels to be added to pod
+podLabels: {}
+
+## Annotations to be added to pod
+podAnnotations: {}
+
+securityContext: {}
+
+containerSecurityContext:
+  runAsUser: 2000
+  allowPrivilegeEscalation: false
+
+## configuration for liveness probe
+livenessProbe:
+  delay: 5
+  period: 5
+  path: /health
+
+# store the whole Karma configuration in a Secret if you have sensitive
+# information like basic-auth credentials for Alertmanager endpoints et. al.
+# The structure of the Secret must be the same as in `configMap.rawConfig`.
+# NOTE: you can either choose the `configMap` or `existingSecretConfig`, it cannot be both
+existingSecretConfig:
+  enabled: false
+  secretName: ""
+
+## configMap dictates if a configmap based configuration for Karma should be used
+## to provide advanced configuration. NOTE, you must use port 8080!
+configMap:
+  enabled: false
+  useFullname: false
+  annotations: {}
+  ## karma compatible YAML configuration
+  # rawConfig:
+  #   alertmanager:
+  #   interval: 30s
+  #   servers:
+  #     - name: local
+  #       uri: http://localhost:9093
+  #       timeout: 10s
+  #       proxy: true
+  #       headers:
+  #         x-auth-token: some-token
+  #         any-header: string-value
+  #     - name: client-auth
+  #       uri: https://localhost:9093
+  #       timeout: 10s
+  #       tls:
+  #         ca: /etc/ssl/certs/ca-bundle.crt
+  #         cert: /etc/karma/client.pem
+  #         key: /etc/karma/client.key
+  #   annotations:
+  #     default:
+  #       hidden: false
+  #     hidden:
+  #       - help
+  #     visible: []
+  #   filters:
+  #     default:
+  #       - "@receiver=by-cluster-service"
+  #   labels:
+  #     color:
+  #       static:
+  #         - job
+  #       unique:
+  #         - cluster
+  #         - instance
+  #         - "@receiver"
+  #     keep: []
+  #     strip: []
+  #   listen:
+  #     address: "0.0.0.0"
+  #     port: 8080
+  #     prefix: /
+  #   log:
+  #     config: false
+  #     level: info
+  #   jira:
+  #     - regex: DEVOPS-[0-9]+
+  #       uri: https://jira.example.com
+  #   receivers:
+  #     keep: []
+  #     strip: []
+  #   sentry:
+  #     private: secret
+  #   public: 123456789
+  ## acls setting
+  # aclsConfig:
+  #   rules:
+  #   - action: block
+  #     reason: all regex silences are blocked, use only concrete label names and values
+  #     scope:
+  #       filters:
+  #         - name_re: .+
+  #           value_re: .+
+  #           isRegex: true
+  #   - action: allow
+  #     reason: admins are allowed
+  #     scope:
+  #       groups:
+  #         - admins
+  #   - action: block
+  #     reason: only admins can create silences with cluster=prod
+  #     scope:
+  #       filters:
+  #         - name: cluster
+  #           value: prod
+  #           isEqual: true
+## Names of secrets that will be mounted to `/etc/certs/<secret_name>` in the karma container.
+## These secrets can be used to configure TLS for Karma's Alertmanagers by passing their paths to
+## the appropriate Karma configuration parameters. For example, secret `foo` containing a `ca.crt`
+## will yield a file at `/etc/certs/foo/ca.crt`. That path can then be provided as the value to
+# `configMap.rawConfig.alertmanager.servers[].tls.ca`.
+## Ref: <https://github.com/prymitive/karma/blob/master/docs/CONFIGURATION.md#alertmanagers>.
+certSecretNames: []
+
+## kthxbye is a tiny daemon that can help with managing short lived acknowledged silences.
+## It will continuously extend short lived acknowledgement silences if there are alerts firing against those silences,
+## which means that the user doesn't need to worry about setting proper duration for such silences.
+kthxbyeSidecar:
+  enabled: false
+  image:
+    repository: ghcr.io/prymitive/kthxbye
+    tag: v0.14
+    pullPolicy: IfNotPresent
+  alertmanagerServiceName: prometheus-alertmanager
+  alertmanagerServicePort: 80
+  extraArgs: {}
+    # alertmanager.timeout: <duration> #Alertmanager request timeout (default 1m0s)
+    # extend-by: <duration> # Extend silences by adding DURATION seconds (default 15m0s)
+    # extend-if-expiring-in: <duration> # Extend silences that are about to expire in the next DURATION seconds (default 5m0s)
+    # extend-with-prefix: <string> # Extend silences with comment starting with PREFIX string (default "ACK!")
+    # interval: <duration> # Silence check interval (default 45s)
+    # max-duration: <duration> # Maximum duration of a silence, it won't be extended anymore after reaching it
+  logJson: false
+  securityContext: {}
+  resources:
+    {}
+    ## We usually recommend not to specify default resources and to leave this as a conscious
+    ## choice for the user. This also increases chances charts run on environments with little
+    ## resources, such as Minikube. If you do want to specify resources, uncomment the following
+    ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+
+# additional sidecar containers array which will be added to the deployment
+sidecarContainers: []
+
+# additional initContainers array which will be added to the deployment
+initContainers: []
+
+# extra volumes for the deployment
+extraVolumes: []
+
+# extra volumeMounts for the deployment
+extraVolumeMounts: []
+
+# extra manifests
+extraManifests: []
+
+# override command args of karma container
+args: []

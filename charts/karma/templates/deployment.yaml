@@ -1,0 +1,166 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "karma.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "karma.labels" . | nindent 4 }}
+{{- with .Values.deployment.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "karma.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "karma.selectorLabels" . | nindent 8 }}
+        {{- if .Values.podLabels -}}
+        {{ toYaml .Values.podLabels | nindent 8 }}
+        {{- end }}
+      {{- if or .Values.configMap.enabled .Values.podAnnotations }}
+      annotations:
+        {{- if .Values.configMap.enabled }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- if .Values.podAnnotations -}}
+        {{ toYaml .Values.podAnnotations | nindent 8 }}
+        {{- end }}
+      {{- end }}
+    spec:
+      {{- with .Values.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ template "karma.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.securityContext }}
+      securityContext:
+{{ toYaml .Values.securityContext | indent 8 }}
+      {{- end }}
+{{- if .Values.initContainers }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+          {{- if or .Values.configMap.enabled .Values.existingSecretConfig.enabled }}
+          - name: CONFIG_FILE
+            value: /etc/karma/karma.conf
+          {{- end }}
+          {{- with .Values.env }}
+{{ toYaml . | indent 10 }}
+          {{- end }}
+          {{- if gt (len .Values.args) 0 }}
+          args:
+{{- range $item := .Values.args }}
+            - {{ $item }}
+{{- end }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.delay }}
+            periodSeconds: {{ .Values.livenessProbe.period }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.delay }}
+            periodSeconds: {{ .Values.livenessProbe.period }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          volumeMounts:
+          {{- if or .Values.configMap.enabled .Values.existingSecretConfig.enabled }}
+            - name: karma-config
+              mountPath: /etc/karma
+          {{- end }}
+          {{- range .Values.certSecretNames }}
+            - name: {{ . }}
+              mountPath: /etc/certs/{{ . }}
+              readOnly: true
+          {{- end }}
+          {{- if .Values.extraVolumeMounts }}
+          {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+          {{- end }}
+        {{- if .Values.containerSecurityContext }}
+          securityContext:
+{{ toYaml .Values.containerSecurityContext | indent 12 }}
+        {{- end }}
+        {{- if .Values.kthxbyeSidecar.enabled }}
+        - name: kthxbye-sidecar
+          image: "{{ .Values.kthxbyeSidecar.image.repository }}:{{ .Values.kthxbyeSidecar.image.tag }}"
+          imagePullPolicy: "{{ .Values.kthxbyeSidecar.image.pullPolicy }}"
+          args:
+            - --listen=:8082
+            - --alertmanager.uri=http://{{ .Values.kthxbyeSidecar.alertmanagerServiceName }}:{{ .Values.kthxbyeSidecar.alertmanagerServicePort }}
+          {{- range $key, $value := .Values.kthxbyeSidecar.extraArgs }}
+            - --{{ $key }}={{ $value }}
+          {{- end }}
+          {{- if .Values.kthxbyeSidecar.logJson }}
+            - --log-json
+          {{- end }}
+          resources:
+{{ toYaml .Values.kthxbyeSidecar.resources | indent 12 }}
+          {{- if .Values.kthxbyeSidecar.securityContext }}
+          securityContext:
+{{ toYaml .Values.kthxbyeSidecar.securityContext | indent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- with .Values.sidecarContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      volumes:
+      {{- if and .Values.configMap.enabled .Values.existingSecretConfig.enabled }}
+      {{- fail "You can either use .Values.configMap or .Values.existingSecretConfig"}}
+      {{- end }}
+      {{- if .Values.configMap.enabled }}
+      - name: karma-config
+        configMap:
+        {{ if .Values.configMap.useFullname }}
+          name: {{ include "karma.fullname" . }}-config
+        {{ else }}
+          name: "{{ .Release.Name }}-config"
+        {{- end}}
+      {{- end }}
+      {{- if .Values.existingSecretConfig.enabled }}
+      - name: karma-config
+        secret:
+          secretName: {{ .Values.existingSecretConfig.secretName }}
+      {{- end }}
+      {{- range .Values.certSecretNames }}
+      - name: {{ . }}
+        secret:
+          defaultMode: 420
+          secretName: {{ . }}
+      {{- end }}
+      {{- if .Values.extraVolumes }}
+      {{- toYaml .Values.extraVolumes | nindent 6 }}
+      {{- end }}
